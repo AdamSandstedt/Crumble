@@ -1,5 +1,6 @@
 package game;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.util.HashSet;
 import java.util.Set;
@@ -9,6 +10,9 @@ import javax.swing.JPanel;
 
 public class GameBoard extends JPanel {
 	private Set<GamePiece> gamePieces;
+	private boolean currentTurn;  // Same color boolean as in GamePiece 0=white, 1=black
+	
+	public static final Point TURN_TEXT_POSITION = new Point(650, 100);
 	
 	GameBoard() {
 		gamePieces = new HashSet<GamePiece>();
@@ -16,6 +20,7 @@ public class GameBoard extends JPanel {
 	}
 	
 	public void initialize() {
+		currentTurn = true;	// black goes first
 		GamePiece newPiece;
 		String location;
 		boolean color = false;
@@ -36,6 +41,16 @@ public class GameBoard extends JPanel {
 		for(GamePiece piece: gamePieces) {
 			piece.draw(g);
 		}
+		this.draw(g);
+	}
+	
+	public void draw(Graphics g) {
+		String turnText;	//Set the turn text to the correct color and display it on the board
+		if(currentTurn) turnText = "Black's Turn";
+		else turnText = "White's Turn";
+		g.setColor(Color.black);
+		g.setFont(g.getFont().deriveFont((float)20));
+		g.drawString(turnText, (int)TURN_TEXT_POSITION.getX(), (int)TURN_TEXT_POSITION.getY());
 	}
 
 	public static void main(String[] args) {
