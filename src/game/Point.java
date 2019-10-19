@@ -21,5 +21,10 @@ public class Point {
 	public String toString() {
 		return "Point [x=" + x + ", y=" + y + "]";
 	}
+
+	public boolean equals(Point p) {
+		if(this.x == p.getX() && this.y == p.getY()) return true;
+		else return false;
+	}
 	
 }
