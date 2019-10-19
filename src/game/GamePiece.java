@@ -17,6 +17,12 @@ public class GamePiece {
 		return color;
 	}
 
+	@Override
+	public String toString() {
+		return "GamePiece [color=" + color + ", bottomLeft=" + bottomLeft + ", topRight=" + topRight + ", location="
+				+ location + "]";
+	}
+
 	public void setColor(boolean color) {
 		this.color = color;
 	}
