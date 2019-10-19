@@ -11,16 +11,19 @@ import javax.swing.JPanel;
 public class GameBoard extends JPanel {
 	private Set<GamePiece> gamePieces;
 	private boolean currentTurn;  // Same color boolean as in GamePiece 0=white, 1=black
+	private Set<Button> buttons;
 	
 	public static final Point TURN_TEXT_POSITION = new Point(650, 100);
 	
 	GameBoard() {
 		gamePieces = new HashSet<GamePiece>();
+		buttons = new HashSet<Button>();
 		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
 	
 	public void initialize() {
 		currentTurn = true;	// black goes first
+		
 		GamePiece newPiece;
 		String location;
 		boolean color = false;
@@ -35,11 +38,23 @@ public class GameBoard extends JPanel {
 			}
 			color = !color;
 		}
+		
+		Button button = new Button(ButtonStatus.ACTIVE, new Point(650, 250), new Point(770, 200), "Split");
+		buttons.add(button);
+		button = new Button(ButtonStatus.INACTIVE, new Point(650, 350), new Point(770, 300), "JOIN");
+		buttons.add(button);
+		button = new Button(ButtonStatus.DISABLED, new Point(650, 450), new Point(770, 400), "Swap");
+		buttons.add(button);
+		button = new Button(ButtonStatus.DISABLED, new Point(650, 550), new Point(770, 500), "End Turn");
+		buttons.add(button);
 	}
 	
 	public void paintComponent(Graphics g) {
 		for(GamePiece piece: gamePieces) {
 			piece.draw(g);
+		}
+		for(Button button: buttons) {
+			button.draw(g);
 		}
 		this.draw(g);
 	}
