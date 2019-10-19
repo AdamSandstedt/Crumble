@@ -10,6 +10,9 @@ public class GamePiece {
 	private Point topRight;
 	private String location;
 	
+	public static final int X_OFFSET = 20;
+	public static final int Y_OFFSET = 20;
+	
 	public GamePiece(boolean color, Point bottomLeft, Point topRight, String location) {
 		this.color = color;
 		this.bottomLeft = bottomLeft;
@@ -45,10 +48,10 @@ public class GamePiece {
 
 	public void draw(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
-		int x1 = 100 + 100*(int)bottomLeft.getX();
-		int x2 = 100 + 100*(int)topRight.getX();
-		int y1 = 700 - 100*(int)topRight.getY();
-		int y2 = 700 - 100*(int)bottomLeft.getY();
+		int x1 = X_OFFSET + 100*(int)bottomLeft.getX();
+		int x2 = X_OFFSET + 100*(int)topRight.getX();
+		int y1 = Y_OFFSET + 600 - 100*(int)topRight.getY();
+		int y2 = Y_OFFSET + 600 - 100*(int)bottomLeft.getY();
 		if(color) {
 			g2.setColor(Color.black);
 		}
