@@ -1,9 +1,13 @@
 package game;
 
+import java.awt.Graphics;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GameBoard {
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class GameBoard extends JPanel {
 	private Set<GamePiece> gamePieces;
 	
 	GameBoard() {
@@ -14,15 +18,32 @@ public class GameBoard {
 	public void initialize() {
 		GamePiece newPiece;
 		String location;
+		boolean color = false;
 		gamePieces.clear();
 		for(double x = 0; x < 6; x++) {
 			for(double y = 0; y < 6; y++) {
 				if(y == 0) location = "" + (int)x;
 				else location = (int)x + "," + (int)y;
-				newPiece = new GamePiece(false, new Point(x,y), new Point(x+1,y+1), location);
+				newPiece = new GamePiece(color, new Point(x,y), new Point(x+1,y+1), location);
+				color = !color;
 				gamePieces.add(newPiece);
 			}
+			color = !color;
 		}
+	}
+	
+	public void paintComponent(Graphics g) {
+		for(GamePiece piece: gamePieces) {
+			piece.draw(g);
+		}
+	}
+
+	public static void main(String[] args) {
+		JFrame frame = new JFrame();
+		frame.setContentPane(new GameBoard());
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(800, 800);
+		frame.setVisible(true);
 	}
 	
 }

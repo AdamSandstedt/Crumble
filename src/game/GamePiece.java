@@ -1,5 +1,9 @@
 package game;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+
 public class GamePiece {
 	private boolean color; // For now, 0=white, 1=black, but a string or enum might be easier to read
 	private Point bottomLeft;
@@ -37,6 +41,28 @@ public class GamePiece {
 
 	public String getLocation() {
 		return location;
+	}
+
+	public void draw(Graphics g) {
+		Graphics2D g2 = (Graphics2D) g;
+		int x1 = 100 + 100*(int)bottomLeft.getX();
+		int x2 = 100 + 100*(int)topRight.getX();
+		int y1 = 700 - 100*(int)topRight.getY();
+		int y2 = 700 - 100*(int)bottomLeft.getY();
+		if(color) {
+			g2.setColor(Color.black);
+		}
+		else {
+			g2.setColor(Color.white);
+		}
+		g2.fillRect(x1, y1, x2-x1, y2-y1);
+		if(color) {
+			g2.setColor(Color.white);
+		}
+		else {
+			g2.setColor(Color.black);
+		}
+		g2.drawRect(x1, y1, x2-x1, y2-y1);
 	}
 	
 }
