@@ -22,10 +22,13 @@ public class GameBoard extends JPanel {
 	private JFrame frame = new JFrame();
 	private Rectangle boardOutline;
 	private BoardPoint firstSelectionPoint, secondSelectionPoint;
+	private GamePiece firstSelectionPiece, secondSelectionPiece;
 	private boolean showSplitLine;
 	private boolean showJoinRect;
 	private Point mousePosition;
 	private boolean splitDirection; // 0=vertical, 1=horizontal
+	private boolean showStartPoint;
+	private Set<GamePiece> swapStartPieces;
 	
 	public static final Point TURN_TEXT_POSITION = new Point(650, 100);
 	
@@ -36,6 +39,7 @@ public class GameBoard extends JPanel {
 			if(currentAction.equals("end turn")) {
 				currentTurn = !currentTurn;
 				currentAction = "split";
+				firstSelectionPiece = null;
 				buttons.get(0).setEnabled(true);
 				buttons.get(1).setEnabled(true);
 				buttons.get(2).setEnabled(false);
@@ -45,6 +49,8 @@ public class GameBoard extends JPanel {
 			else if(currentAction.equals("split") || currentAction.equals("join")) {
 				firstSelectionPoint = null;
 				secondSelectionPoint = null;
+				firstSelectionPiece = null;
+				secondSelectionPiece = null;
 				showSplitLine = false;
 				showJoinRect = false;
 				frame.repaint();
@@ -55,6 +61,7 @@ public class GameBoard extends JPanel {
 	GameBoard() {
 		gamePieces = new HashSet<GamePiece>();
 		buttons = new ArrayList<JButton>();
+		swapStartPieces = new HashSet<GamePiece>();
 		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
 	
@@ -67,6 +74,7 @@ public class GameBoard extends JPanel {
 		showSplitLine = false;
 		showJoinRect = false;
 		splitDirection = false;
+		showStartPoint = false;
 		
 		GamePiece newPiece;
 		String location;
@@ -111,6 +119,8 @@ public class GameBoard extends JPanel {
 	}
 	
 	public void paintComponent(Graphics g) {
+		g.setColor(getBackground());
+		g.fillRect(0, 0, 800, 800);
 		for(GamePiece piece: gamePieces) {
 			piece.draw(g);
 		}
@@ -126,7 +136,14 @@ public class GameBoard extends JPanel {
 		g.setFont(g.getFont().deriveFont((float)20));
 		g.drawString(turnText, TURN_TEXT_POSITION.x, TURN_TEXT_POSITION.y);
 		g.drawRect(boardOutline.x, boardOutline.y, boardOutline.width, boardOutline.height);
-		if(showSplitLine) {
+		if(showStartPoint) {
+			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition));
+			if(p != null) {
+				g2.setColor(Color.red);
+				g2.fillRect(p.toPoint().x, p.toPoint().y, 5, 5);
+			}
+		}
+		else if(showSplitLine) {
 			int x1, y1, x2, y2;
 			x1 = firstSelectionPoint.toPoint().x;
 			y1 = firstSelectionPoint.toPoint().y;
@@ -137,7 +154,7 @@ public class GameBoard extends JPanel {
 			g2.setStroke(new BasicStroke(4));
 			g2.drawLine(x1, y1, x2, y2);
 		}
-		if(showJoinRect) {
+		else if(showJoinRect) {
 			int x1, y1, width, height;
 			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition));
 			if(p != null) {
@@ -149,6 +166,16 @@ public class GameBoard extends JPanel {
 				g2.setStroke(new BasicStroke(4));
 				g2.drawRect(x1, y1, width, height);
 			}
+		}
+		else if(firstSelectionPiece != null) {
+			int x1, y1, x2, y2;
+			x1 = firstSelectionPiece.getBottomLeft().toPoint().x;
+			y1 = firstSelectionPiece.getTopRight().toPoint().y;
+			x2 = firstSelectionPiece.getTopRight().toPoint().x;
+			y2 = firstSelectionPiece.getBottomLeft().toPoint().y;
+			g2.setColor(Color.red);
+			g2.setStroke(new BasicStroke(4));
+			g2.drawRect(x1, y1, x2-x1, y2-y1);
 		}
 	}
 
@@ -183,8 +210,37 @@ public class GameBoard extends JPanel {
 						}
 					}
 					else if(board.currentAction.equals("swap")) {
-						
+						if(board.firstSelectionPiece == null) {
+							for(GamePiece piece: board.swapStartPieces) {
+								if(piece.contains(p)) {
+									board.firstSelectionPiece = piece;
+									board.frame.repaint();
+									board.swapStartPieces.clear();
+									break;
+								}
+							}
+						}
+						else {
+							for(GamePiece piece: board.gamePieces) {
+								if(piece.contains(p) && validateSwap(board.firstSelectionPiece, piece)) {
+									board.secondSelectionPiece = piece;
+									break;
+								}
+							}
+							if(board.secondSelectionPiece != null) board.swap();
+						}
 					}
+				}
+			}
+
+			private boolean validateSwap(GamePiece p1, GamePiece p2) {
+				if(p1.getBottomLeft().getY() == p2.getBottomLeft().getY() && p1.getTopRight().getY() == p2.getTopRight().getY() ||
+				   p1.getBottomLeft().getX() == p2.getBottomLeft().getX() && p1.getTopRight().getX() == p2.getTopRight().getX() ) {
+					if(p1.isColor() != p2.isColor()) return true;
+					else return false;
+				}
+				else {					
+					return false;
 				}
 			}
 
@@ -204,34 +260,64 @@ public class GameBoard extends JPanel {
 		board.frame.addMouseMotionListener(new MouseMotionListener() {
 
 			@Override
-			public void mouseDragged(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void mouseDragged(MouseEvent e) {}
 
 			@Override
 			public void mouseMoved(MouseEvent e) {
+				board.mousePosition = e.getPoint();
+				board.mousePosition.translate(0, -22);
 				if(board.firstSelectionPoint != null) {
 					if(board.currentAction.equals("split")) {
-						board.mousePosition = e.getPoint();
-						board.mousePosition.translate(0, -22);
 						board.showSplitLine = true;
-						board.frame.repaint();
+						board.showStartPoint = false;
 					}
 					else if(board.currentAction.equals("join")) {
-						board.mousePosition = e.getPoint();
-						board.mousePosition.translate(0, -22);
+						board.showStartPoint = false;
 						board.showJoinRect = true;
-						board.frame.repaint();
 					}
 				}
-				
+				else {
+					if(board.currentAction.equals("split")) {
+						board.showStartPoint = true;
+					}
+					else if(board.currentAction.equals("join")) {
+						board.showJoinRect = false;
+						board.showStartPoint = true;
+					}
+				}
+				board.frame.repaint();				
 			}
 			
 		});
 	}
 
+	public void swap() {
+		firstSelectionPiece.setColor(!firstSelectionPiece.isColor());
+		secondSelectionPiece.setColor(!secondSelectionPiece.isColor());
+		firstSelectionPiece = secondSelectionPiece;
+		secondSelectionPiece = null;
+		frame.repaint();
+	}
+
 	public void join() {
+		Set<GamePiece> piecesToJoin = new HashSet<GamePiece>();
+		GamePiece p1 = null, p2 = null;
+		for(GamePiece piece: gamePieces) {
+			if(piece.getBottomLeft().equals(firstSelectionPoint)) p1 = piece;
+			if(piece.getTopRight().equals(secondSelectionPoint)) p2 = piece;
+		}
+		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), "????");
+		for(GamePiece piece: gamePieces) {
+			if(newPiece.contains(piece)) {
+				piecesToJoin.add(piece);
+			}
+		}
+		for(GamePiece piece: piecesToJoin) {
+			gamePieces.remove(piece);
+		}
+		gamePieces.add(newPiece);
+		firstSelectionPiece = newPiece;
+		
 		showJoinRect = false;
 		currentAction = "swap";
 		buttons.get(0).setEnabled(false);
@@ -244,6 +330,44 @@ public class GameBoard extends JPanel {
 	}
 
 	public void split() {
+		Set<GamePiece> piecesToSplit = new HashSet<GamePiece>();
+		if(splitDirection) { // horizontal split
+			for(GamePiece piece: gamePieces) {
+				if(piece.canSplitHorizontal() && firstSelectionPoint.getY() == piece.getHorizontalSplitStart().getY() &&
+				   firstSelectionPoint.getX() <= piece.getBottomLeft().getX() && secondSelectionPoint.getX() >= piece.getTopRight().getX()) {
+					piecesToSplit.add(piece);
+				}
+			}
+			GamePiece newPieceBottom, newPieceTop;
+			for(GamePiece piece: piecesToSplit) {
+				gamePieces.remove(piece);
+				newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), "????");
+				newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), "????");
+				gamePieces.add(newPieceBottom);
+				gamePieces.add(newPieceTop);
+				swapStartPieces.add(newPieceTop);
+				swapStartPieces.add(newPieceBottom);
+			}
+		}
+		else { // vertical
+			for(GamePiece piece: gamePieces) {
+				if(piece.canSplitVertical() && firstSelectionPoint.getX() == piece.getVerticalSplitStart().getX() &&
+				   firstSelectionPoint.getY() <= piece.getBottomLeft().getY() && secondSelectionPoint.getY() >= piece.getTopRight().getY()) {
+					piecesToSplit.add(piece);
+				}
+			}
+			GamePiece newPieceLeft, newPieceRight;
+			for(GamePiece piece: piecesToSplit) {
+				gamePieces.remove(piece);
+				newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), "????");
+				newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), "????");
+				gamePieces.add(newPieceRight);
+				gamePieces.add(newPieceLeft);
+				swapStartPieces.add(newPieceRight);
+				swapStartPieces.add(newPieceLeft);
+			}
+		}
+		
 		showSplitLine = false;
 		currentAction = "swap";
 		buttons.get(0).setEnabled(false);
@@ -264,12 +388,12 @@ public class GameBoard extends JPanel {
 			case "split":
 				for(GamePiece piece: gamePieces) {
 					if(piece.isColor() == currentTurn) {
-						if(point.distanceSq(piece.getHorizontalSplitStart()) < minSquareDistance) {
+						if(piece.canSplitHorizontal() && point.distanceSq(piece.getHorizontalSplitStart()) < minSquareDistance) {
 							splitDirection = true;
 							nearestPoint = piece.getHorizontalSplitStart();
 							minSquareDistance = point.distanceSq(piece.getHorizontalSplitStart());
 						}
-						if(point.distanceSq(piece.getVerticalSplitStart()) < minSquareDistance) {
+						if(piece.canSplitVertical() && point.distanceSq(piece.getVerticalSplitStart()) < minSquareDistance) {
 							splitDirection = false;
 							nearestPoint = piece.getVerticalSplitStart();
 							minSquareDistance = point.distanceSq(piece.getVerticalSplitStart());
@@ -281,12 +405,12 @@ public class GameBoard extends JPanel {
 				for(GamePiece piece: gamePieces) {
 					if(piece.isColor() == currentTurn) {
 						if(point.distanceSq(piece.getBottomLeft()) < minSquareDistance) {
-							nearestPoint = piece.getBottomLeft();
-							minSquareDistance = point.distanceSq(piece.getBottomLeft());
-						}
-						if(point.distanceSq(piece.getBottomLeft()) < minSquareDistance) {
-							nearestPoint = piece.getBottomLeft();
-							minSquareDistance = point.distanceSq(piece.getBottomLeft());
+							firstSelectionPoint = piece.getBottomLeft();
+							if(getNearestPoint(point) != null) {
+								nearestPoint = piece.getBottomLeft();
+								minSquareDistance = point.distanceSq(piece.getBottomLeft());
+							}
+							firstSelectionPoint = null;
 						}
 					}
 				}
@@ -298,7 +422,7 @@ public class GameBoard extends JPanel {
 			case "split":
 				for(GamePiece piece: gamePieces) {
 					if(piece.isColor() == currentTurn) {
-						if(splitDirection) {
+						if(splitDirection && piece.canSplitHorizontal()) {
 							BoardPoint end = piece.getHorizontalSplitEnd();
 							if(end.getY() == firstSelectionPoint.getY() && end.getX() > firstSelectionPoint.getX())
 								if(point.distanceSq(end) < minSquareDistance && validateSplit(firstSelectionPoint, end)) {
@@ -306,7 +430,7 @@ public class GameBoard extends JPanel {
 									minSquareDistance = point.distanceSq(end);
 								}
 						}
-						else {
+						else if(!splitDirection && piece.canSplitVertical()) {
 							BoardPoint end = piece.getVerticalSplitEnd();
 							if(end.getX() == firstSelectionPoint.getX() && end.getY() > firstSelectionPoint.getY())
 								if(point.distanceSq(end) < minSquareDistance && validateSplit(firstSelectionPoint, end)) {
@@ -339,7 +463,7 @@ public class GameBoard extends JPanel {
 		double area = 0;
 		int pieceCount = 0;
 		double width = p2.getX()-p1.getX();
-		double height = p2.getY()-p2.getY();
+		double height = p2.getY()-p1.getY();
 		for(GamePiece piece: gamePieces) {
 			if(p1.getX() <= piece.getBottomLeft().getX() && p2.getX() >= piece.getTopRight().getX() &&
 			   p1.getY() <= piece.getBottomLeft().getY() && p2.getY() >= piece.getTopRight().getY() && piece.isColor() == currentTurn) {
@@ -350,7 +474,7 @@ public class GameBoard extends JPanel {
 		if(area != width*height) return false;
 		else if(pieceCount <= 1) return false;
 		else if(width != height && 2*width != height && width != 2*height) return false;
-		else return true;
+		return true;
 	}
 
 	private boolean validateSplit(BoardPoint p1, BoardPoint p2) {
@@ -359,7 +483,7 @@ public class GameBoard extends JPanel {
 			for(GamePiece piece: gamePieces) {
 				if(p1.getY() < piece.getTopRight().getY() && p1.getY() > piece.getBottomLeft().getY() &&
 				   p1.getX() <= piece.getBottomLeft().getX() && p2.getX() >= piece.getTopRight().getX() ) {
-					if(piece.getHorizontalSplitStart().getY() != p1.getY() || (piece.isColor() != currentTurn)) {
+					if(piece.canSplitHorizontal() && piece.getHorizontalSplitStart().getY() != p1.getY() || (piece.isColor() != currentTurn)) {
 						splitIsValid = false;
 						break;
 					}
@@ -370,7 +494,7 @@ public class GameBoard extends JPanel {
 			for(GamePiece piece: gamePieces) {
 				if(p1.getX() < piece.getTopRight().getX() && p1.getX() > piece.getBottomLeft().getX() &&
 				   p1.getY() <= piece.getBottomLeft().getY() && p2.getY() >= piece.getTopRight().getY() ) {
-					if(piece.getVerticalSplitStart().getX() != p1.getX() || (piece.isColor() != currentTurn)) {
+					if(piece.canSplitVertical() && piece.getVerticalSplitStart().getX() != p1.getX() || (piece.isColor() != currentTurn)) {
 						splitIsValid = false;
 						break;
 					}
