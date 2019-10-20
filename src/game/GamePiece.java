@@ -3,6 +3,7 @@ package game;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 
 public class GamePiece {
 	private boolean color; // For now, 0=white, 1=black, but a string or enum might be easier to read
@@ -132,6 +133,31 @@ public class GamePiece {
 			g2.setColor(Color.black);
 		}
 		g2.drawRect(x1, y1, x2-x1, y2-y1);
+	}
+
+	public boolean contains(Point p) {
+		BoardPoint bp = new BoardPoint(p);
+		return contains(bp);
+	}
+
+	public boolean contains(BoardPoint p) {
+		if(p.getX() < topRight.getX() && p.getX() > bottomLeft.getX()
+		   && p.getY() < topRight.getY() && p.getY() > bottomLeft.getY()) {
+			return true;
+		}
+		else {			
+			return false;
+		}
+	}
+	
+	public boolean contains(GamePiece p) {
+		if(p.getTopRight().getX() <= topRight.getX() && p.getBottomLeft().getX() >= bottomLeft.getX() &&
+		   p.getTopRight().getY() <= topRight.getY() && p.getBottomLeft().getY() >= bottomLeft.getY() ) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
 }
