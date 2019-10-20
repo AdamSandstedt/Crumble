@@ -1,24 +1,23 @@
 package game;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Point;
+import java.awt.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class GameBoard extends JPanel {
 	private Set<GamePiece> gamePieces;
 	private boolean currentTurn;  // Same color boolean as in GamePiece 0=white, 1=black
-	private Set<Button> buttons;
+	private Set<JButton> buttons;
 	
 	public static final Point TURN_TEXT_POSITION = new Point(650, 100);
 	
 	GameBoard() {
 		gamePieces = new HashSet<GamePiece>();
-		buttons = new HashSet<Button>();
+		buttons = new HashSet<JButton>();
 		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
 	
@@ -40,22 +39,29 @@ public class GameBoard extends JPanel {
 			color = !color;
 		}
 		
-		Button button = new Button(ButtonStatus.ACTIVE, new Point(650, 250), new Point(770, 200), "Split");
+		JButton button = new JButton("Split");
+		button.setBounds(650, 200, 120, 50);
+		button.setActionCommand("split");
 		buttons.add(button);
-		button = new Button(ButtonStatus.INACTIVE, new Point(650, 350), new Point(770, 300), "JOIN");
+		button = new JButton("Join");
+		button.setBounds(650, 300, 120, 50);
+		button.setActionCommand("join");
 		buttons.add(button);
-		button = new Button(ButtonStatus.DISABLED, new Point(650, 450), new Point(770, 400), "Swap");
+		button = new JButton("Swap");
+		button.setBounds(650, 400, 120, 50);
+		button.setActionCommand("swap");
+		button.setEnabled(false);
 		buttons.add(button);
-		button = new Button(ButtonStatus.DISABLED, new Point(650, 550), new Point(770, 500), "End Turn");
+		button = new JButton("End Turn");
+		button.setBounds(650, 500, 120, 50);
+		button.setActionCommand("end turn");
+		button.setEnabled(false);
 		buttons.add(button);
 	}
 	
 	public void paintComponent(Graphics g) {
 		for(GamePiece piece: gamePieces) {
 			piece.draw(g);
-		}
-		for(Button button: buttons) {
-			button.draw(g);
 		}
 		this.draw(g);
 	}
@@ -70,13 +76,16 @@ public class GameBoard extends JPanel {
 	}
 
 	public static void main(String[] args) {
+		GameBoard board = new GameBoard();
 		JFrame frame = new JFrame();
-		frame.setContentPane(new GameBoard());
+		frame.setContentPane(board);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(800, 800);
 		frame.setVisible(true);
 		
-		java.awt.Point a = frame.getMousePosition();
+		for(JButton button: board.buttons) {
+			frame.add(button);
+		}
 		
 	}
 	
