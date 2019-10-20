@@ -1,6 +1,7 @@
 package game;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,13 +12,13 @@ import javax.swing.JPanel;
 public class GameBoard extends JPanel {
 	private Set<GamePiece> gamePieces;
 	private boolean currentTurn;  // Same color boolean as in GamePiece 0=white, 1=black
-	private Set<JButton> buttons;
+	private ArrayList<JButton> buttons;
 	
 	public static final Point TURN_TEXT_POSITION = new Point(650, 100);
 	
 	GameBoard() {
 		gamePieces = new HashSet<GamePiece>();
-		buttons = new HashSet<JButton>();
+		buttons = new ArrayList<JButton>();
 		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
 	
