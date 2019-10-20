@@ -140,13 +140,15 @@ public class GameBoard extends JPanel {
 		if(showJoinRect) {
 			int x1, y1, width, height;
 			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition));
-			x1 = firstSelectionPoint.toPoint().x;
-			y1 = p.toPoint().y;
-			width = p.toPoint().x - x1;
-			height = firstSelectionPoint.toPoint().y - y1;
-			g2.setColor(Color.red);
-			g2.setStroke(new BasicStroke(4));
-			g2.drawRect(x1, y1, width, height);
+			if(p != null) {
+				x1 = firstSelectionPoint.toPoint().x;
+				y1 = p.toPoint().y;
+				width = p.toPoint().x - x1;
+				height = firstSelectionPoint.toPoint().y - y1;
+				g2.setColor(Color.red);
+				g2.setStroke(new BasicStroke(4));
+				g2.drawRect(x1, y1, width, height);
+			}
 		}
 	}
 
@@ -172,6 +174,7 @@ public class GameBoard extends JPanel {
 					if(board.currentAction.equals("split") || board.currentAction.equals("join")) {
 						if(board.firstSelectionPoint == null) {
 							board.firstSelectionPoint = board.getNearestPoint(click);
+							if(board.currentAction.equals("join") && board.getNearestPoint(click) == null) board.firstSelectionPoint = null;
 						}
 						else {
 							board.secondSelectionPoint = board.getNearestPoint(click);
@@ -319,7 +322,7 @@ public class GameBoard extends JPanel {
 				for(GamePiece piece: gamePieces) {
 					if(piece.isColor() == currentTurn) {
 						if(piece.getTopRight().getX() > firstSelectionPoint.getX() && piece.getTopRight().getY() > firstSelectionPoint.getY()) {
-							if(point.distanceSq(piece.getTopRight()) < minSquareDistance) {
+							if(point.distanceSq(piece.getTopRight()) < minSquareDistance && validateJoin(firstSelectionPoint, piece.getTopRight())) {
 								nearestPoint = piece.getTopRight();
 								minSquareDistance = point.distanceSq(piece.getTopRight());
 							}
@@ -330,6 +333,24 @@ public class GameBoard extends JPanel {
 			}
 		}
 		return nearestPoint;
+	}
+
+	private boolean validateJoin(BoardPoint p1, BoardPoint p2) {
+		double area = 0;
+		int pieceCount = 0;
+		double width = p2.getX()-p1.getX();
+		double height = p2.getY()-p2.getY();
+		for(GamePiece piece: gamePieces) {
+			if(p1.getX() <= piece.getBottomLeft().getX() && p2.getX() >= piece.getTopRight().getX() &&
+			   p1.getY() <= piece.getBottomLeft().getY() && p2.getY() >= piece.getTopRight().getY() && piece.isColor() == currentTurn) {
+				area += (piece.getTopRight().getX()-piece.getBottomLeft().getX())*(piece.getTopRight().getY()-piece.getBottomLeft().getY());
+				pieceCount++;
+			}
+		}
+		if(area != width*height) return false;
+		else if(pieceCount <= 1) return false;
+		else if(width != height && 2*width != height && width != 2*height) return false;
+		else return true;
 	}
 
 	private boolean validateSplit(BoardPoint p1, BoardPoint p2) {
