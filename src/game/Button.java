@@ -2,6 +2,7 @@ package game;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 
 public class Button {
 	private ButtonStatus status;
@@ -17,10 +18,10 @@ public class Button {
 	}
 	
 	public void draw(Graphics g) {
-		int x1 = (int)bottomLeft.getX();
-		int x2 = (int)topRight.getX();
-		int y1 = (int)topRight.getY();
-		int y2 = (int)bottomLeft.getY();
+		int x1 = bottomLeft.x;
+		int x2 = topRight.x;
+		int y1 = topRight.y;
+		int y2 = bottomLeft.y;
 		g.setColor(Color.black);
 		g.drawRect(x1, y1, x2-x1, y2-y1);
 		g.setFont(g.getFont().deriveFont((float)20));

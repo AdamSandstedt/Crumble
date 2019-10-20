@@ -6,14 +6,14 @@ import java.awt.Graphics2D;
 
 public class GamePiece {
 	private boolean color; // For now, 0=white, 1=black, but a string or enum might be easier to read
-	private Point bottomLeft;
-	private Point topRight;
+	private BoardPoint bottomLeft;
+	private BoardPoint topRight;
 	private String location;
 	
 	public static final int X_OFFSET = 20;
 	public static final int Y_OFFSET = 20;
 	
-	public GamePiece(boolean color, Point bottomLeft, Point topRight, String location) {
+	public GamePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, String location) {
 		this.color = color;
 		this.bottomLeft = bottomLeft;
 		this.topRight = topRight;
@@ -34,11 +34,11 @@ public class GamePiece {
 		this.color = color;
 	}
 
-	public Point getBottomLeft() {
+	public BoardPoint getBottomLeft() {
 		return bottomLeft;
 	}
 
-	public Point getTopRight() {
+	public BoardPoint getTopRight() {
 		return topRight;
 	}
 

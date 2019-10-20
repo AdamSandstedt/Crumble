@@ -1,10 +1,10 @@
 package game;
 
-public class Point {
+public class BoardPoint {
 	private double x;
 	private double y;
 	
-	Point(double x, double y) {
+	BoardPoint(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
@@ -22,7 +22,7 @@ public class Point {
 		return "Point [x=" + x + ", y=" + y + "]";
 	}
 
-	public boolean equals(Point p) {
+	public boolean equals(BoardPoint p) {
 		if(this.x == p.getX() && this.y == p.getY()) return true;
 		else return false;
 	}

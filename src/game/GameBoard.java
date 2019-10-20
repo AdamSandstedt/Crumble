@@ -2,6 +2,7 @@ package game;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public class GameBoard extends JPanel {
 			for(double y = 0; y < 6; y++) {
 				if(y == 0) location = "" + (int)x;
 				else location = (int)x + "," + (int)y;
-				newPiece = new GamePiece(color, new Point(x,y), new Point(x+1,y+1), location);
+				newPiece = new GamePiece(color, new BoardPoint(x,y), new BoardPoint(x+1,y+1), location);
 				color = !color;
 				gamePieces.add(newPiece);
 			}
@@ -65,7 +66,7 @@ public class GameBoard extends JPanel {
 		else turnText = "White's Turn";
 		g.setColor(Color.black);
 		g.setFont(g.getFont().deriveFont((float)20));
-		g.drawString(turnText, (int)TURN_TEXT_POSITION.getX(), (int)TURN_TEXT_POSITION.getY());
+		g.drawString(turnText, TURN_TEXT_POSITION.x, TURN_TEXT_POSITION.y);
 	}
 
 	public static void main(String[] args) {
@@ -74,6 +75,9 @@ public class GameBoard extends JPanel {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(800, 800);
 		frame.setVisible(true);
+		
+		java.awt.Point a = frame.getMousePosition();
+		
 	}
 	
 }
