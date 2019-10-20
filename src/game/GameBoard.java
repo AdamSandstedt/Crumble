@@ -298,7 +298,7 @@ public class GameBoard extends JPanel {
 						if(splitDirection) {
 							BoardPoint end = piece.getHorizontalSplitEnd();
 							if(end.getY() == firstSelectionPoint.getY() && end.getX() > firstSelectionPoint.getX())
-								if(point.distanceSq(end) < minSquareDistance) {
+								if(point.distanceSq(end) < minSquareDistance && validateSplit(firstSelectionPoint, end)) {
 									nearestPoint = end;
 									minSquareDistance = point.distanceSq(end);
 								}
@@ -306,7 +306,7 @@ public class GameBoard extends JPanel {
 						else {
 							BoardPoint end = piece.getVerticalSplitEnd();
 							if(end.getX() == firstSelectionPoint.getX() && end.getY() > firstSelectionPoint.getY())
-								if(point.distanceSq(end) < minSquareDistance) {
+								if(point.distanceSq(end) < minSquareDistance && validateSplit(firstSelectionPoint, end)) {
 									nearestPoint = end;
 									minSquareDistance = point.distanceSq(end);
 								}
@@ -330,6 +330,33 @@ public class GameBoard extends JPanel {
 			}
 		}
 		return nearestPoint;
+	}
+
+	private boolean validateSplit(BoardPoint p1, BoardPoint p2) {
+		boolean splitIsValid = true;
+		if(splitDirection) {
+			for(GamePiece piece: gamePieces) {
+				if(p1.getY() < piece.getTopRight().getY() && p1.getY() > piece.getBottomLeft().getY() &&
+				   p1.getX() <= piece.getBottomLeft().getX() && p2.getX() >= piece.getTopRight().getX() ) {
+					if(piece.getHorizontalSplitStart().getY() != p1.getY() || (piece.isColor() != currentTurn)) {
+						splitIsValid = false;
+						break;
+					}
+				}
+			}
+		}
+		else {
+			for(GamePiece piece: gamePieces) {
+				if(p1.getX() < piece.getTopRight().getX() && p1.getX() > piece.getBottomLeft().getX() &&
+				   p1.getY() <= piece.getBottomLeft().getY() && p2.getY() >= piece.getTopRight().getY() ) {
+					if(piece.getVerticalSplitStart().getX() != p1.getX() || (piece.isColor() != currentTurn)) {
+						splitIsValid = false;
+						break;
+					}
+				}
+			}
+		}
+		return splitIsValid;
 	}
 	
 }
