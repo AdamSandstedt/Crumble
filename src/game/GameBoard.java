@@ -1,6 +1,8 @@
 package game;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,8 +15,35 @@ public class GameBoard extends JPanel {
 	private Set<GamePiece> gamePieces;
 	private boolean currentTurn;  // Same color boolean as in GamePiece 0=white, 1=black
 	private ArrayList<JButton> buttons;
+	private String currentAction;
+	private JFrame frame = new JFrame();
 	
 	public static final Point TURN_TEXT_POSITION = new Point(650, 100);
+	
+	private ActionListener actionListener = new ActionListener() { 
+		@Override
+		public void actionPerformed(ActionEvent e) { 
+			currentAction = e.getActionCommand();
+			if(currentAction.equals("split")) {
+				
+			}
+			else if(currentAction.equals("join")) {
+				
+			}
+			else if(currentAction.equals("swap")) {
+				
+			}
+			else if(currentAction.equals("end turn")) {
+				currentTurn = !currentTurn;
+				currentAction = "split";
+				buttons.get(0).setEnabled(true);
+				buttons.get(1).setEnabled(true);
+				buttons.get(2).setEnabled(false);
+				buttons.get(3).setEnabled(false);
+				frame.repaint();
+			}
+		}
+	};
 	
 	GameBoard() {
 		gamePieces = new HashSet<GamePiece>();
@@ -24,6 +53,7 @@ public class GameBoard extends JPanel {
 	
 	public void initialize() {
 		currentTurn = true;	// black goes first
+		currentAction = "split";
 		
 		GamePiece newPiece;
 		String location;
@@ -47,16 +77,19 @@ public class GameBoard extends JPanel {
 		button = new JButton("Join");
 		button.setBounds(650, 300, 120, 50);
 		button.setActionCommand("join");
+		button.addActionListener(actionListener);
 		buttons.add(button);
 		button = new JButton("Swap");
 		button.setBounds(650, 400, 120, 50);
 		button.setActionCommand("swap");
 		button.setEnabled(false);
+		button.addActionListener(actionListener);
 		buttons.add(button);
 		button = new JButton("End Turn");
 		button.setBounds(650, 500, 120, 50);
 		button.setActionCommand("end turn");
 		button.setEnabled(false);
+		button.addActionListener(actionListener);
 		buttons.add(button);
 	}
 	
@@ -78,14 +111,14 @@ public class GameBoard extends JPanel {
 
 	public static void main(String[] args) {
 		GameBoard board = new GameBoard();
-		JFrame frame = new JFrame();
-		frame.setContentPane(board);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(800, 800);
-		frame.setVisible(true);
+		
+		board.frame.setContentPane(board);
+		board.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		board.frame.setSize(800, 800);
+		board.frame.setVisible(true);
 		
 		for(JButton button: board.buttons) {
-			frame.add(button);
+			board.frame.add(button);
 		}
 		
 	}
