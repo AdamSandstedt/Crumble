@@ -73,18 +73,22 @@ public class GameBoard extends JPanel {
 		JButton button = new JButton("Split");
 		button.setBounds(650, 200, 120, 50);
 		button.setActionCommand("split");
+		button.addActionListener(actionListener);
 		buttons.add(button);
+		
 		button = new JButton("Join");
 		button.setBounds(650, 300, 120, 50);
 		button.setActionCommand("join");
 		button.addActionListener(actionListener);
 		buttons.add(button);
+		
 		button = new JButton("Swap");
 		button.setBounds(650, 400, 120, 50);
 		button.setActionCommand("swap");
 		button.setEnabled(false);
 		button.addActionListener(actionListener);
 		buttons.add(button);
+		
 		button = new JButton("End Turn");
 		button.setBounds(650, 500, 120, 50);
 		button.setActionCommand("end turn");
