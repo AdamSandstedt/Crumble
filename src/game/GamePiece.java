@@ -11,6 +11,7 @@ public class GamePiece {
 	private String location;
 	private BoardPoint horizontalSplitStart, verticalSplitStart;
 	private BoardPoint horizontalSplitEnd, verticalSplitEnd;
+	private String shape;
 	
 	public static final int X_OFFSET = 20;
 	public static final int Y_OFFSET = 20;
@@ -20,10 +21,37 @@ public class GamePiece {
 		this.bottomLeft = bottomLeft;
 		this.topRight = topRight;
 		this.location = location;
-		horizontalSplitStart = new BoardPoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2);
-		verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY());
-		horizontalSplitEnd = new BoardPoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2);
-		verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY());
+		double width = topRight.getX()-bottomLeft.getX();
+		double height = topRight.getY()-bottomLeft.getY();
+		if(width == height) {
+			shape = "square";
+			horizontalSplitStart = new BoardPoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2);
+			verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY());
+			horizontalSplitEnd = new BoardPoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2);
+			verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY());
+		}
+		else if(height == 2*width) {
+			shape = "tall";
+			horizontalSplitStart = new BoardPoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2);
+			horizontalSplitEnd = new BoardPoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2);
+		}
+		else {
+			shape = "wide";
+			verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY());
+			verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY());
+		}
+	}
+
+	public String getShape() {
+		return shape;
+	}
+	
+	public boolean canSplitHorizontal() {
+		return !shape.equals("wide");
+	}
+	
+	public boolean canSplitVertical() {
+		return !shape.equals("tall");
 	}
 
 	public BoardPoint getHorizontalSplitStart() {
@@ -86,10 +114,10 @@ public class GamePiece {
 
 	public void draw(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
-		int x1 = X_OFFSET + 100*(int)bottomLeft.getX();
-		int x2 = X_OFFSET + 100*(int)topRight.getX();
-		int y1 = Y_OFFSET + 600 - 100*(int)topRight.getY();
-		int y2 = Y_OFFSET + 600 - 100*(int)bottomLeft.getY();
+		int x1 = (int)(X_OFFSET + 100*bottomLeft.getX());
+		int x2 = (int)(X_OFFSET + 100*topRight.getX());
+		int y1 = (int)(Y_OFFSET + 600 - 100*topRight.getY());
+		int y2 = (int)(Y_OFFSET + 600 - 100*bottomLeft.getY());
 		if(color) {
 			g2.setColor(Color.black);
 		}
