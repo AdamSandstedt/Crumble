@@ -222,7 +222,7 @@ public class GameBoard extends JPanel {
 						}
 						else {
 							for(GamePiece piece: board.gamePieces) {
-								if(piece.contains(p) && validateSwap(board.firstSelectionPiece, piece)) {
+								if(piece.contains(p) && board.validateSwap(board.firstSelectionPiece, piece)) {
 									board.secondSelectionPiece = piece;
 									break;
 								}
@@ -230,17 +230,6 @@ public class GameBoard extends JPanel {
 							if(board.secondSelectionPiece != null) board.swap();
 						}
 					}
-				}
-			}
-
-			private boolean validateSwap(GamePiece p1, GamePiece p2) {
-				if(p1.getBottomLeft().getY() == p2.getBottomLeft().getY() && p1.getTopRight().getY() == p2.getTopRight().getY() ||
-				   p1.getBottomLeft().getX() == p2.getBottomLeft().getX() && p1.getTopRight().getX() == p2.getTopRight().getX() ) {
-					if(p1.isColor() != p2.isColor()) return true;
-					else return false;
-				}
-				else {					
-					return false;
 				}
 			}
 
@@ -502,6 +491,19 @@ public class GameBoard extends JPanel {
 			}
 		}
 		return splitIsValid;
+	}
+	
+	private boolean validateSwap(GamePiece p1, GamePiece p2) {
+		if(p1.getBottomLeft().getY() == p2.getBottomLeft().getY() && p1.getTopRight().getY() == p2.getTopRight().getY() &&
+		   (p1.getBottomLeft().getX() == p2.getTopRight().getX() || p1.getTopRight().getX() == p2.getBottomLeft().getX() ) ||
+		   p1.getBottomLeft().getX() == p2.getBottomLeft().getX() && p1.getTopRight().getX() == p2.getTopRight().getX() &&
+		   (p1.getBottomLeft().getY() == p2.getTopRight().getY() || p1.getTopRight().getY() == p2.getBottomLeft().getY()) ) {
+			if(p1.isColor() != p2.isColor()) return true;
+			else return false;
+		}
+		else {					
+			return false;
+		}
 	}
 	
 }
