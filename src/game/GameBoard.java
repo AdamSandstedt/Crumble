@@ -9,6 +9,8 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 
 import javax.swing.JButton;
@@ -56,6 +58,7 @@ public class GameBoard extends JPanel {
 				secondSelectionPiece = null;
 				showSplitLine = false;
 				showJoinRect = false;
+				showStartPoint = true;
 				frame.repaint();
 			}
 		}
@@ -548,6 +551,7 @@ public class GameBoard extends JPanel {
 		Set<GamePiece> oldChain = findChain(piece);
 		oldChain.remove(piece);
 		if(oldChain.isEmpty()) chains.remove(oldChain);
+		else validateChain(oldChain);
 		Set<GamePiece> chain = null;
 		for(GamePiece neighbor: piece.getNeighbors()) {
 			if(neighbor.isColor() == piece.isColor()) {
@@ -576,6 +580,34 @@ public class GameBoard extends JPanel {
 			newChain.add(piece);
 			chains.add(newChain);
 		}
+	}
+
+	private void validateChain(Set<GamePiece> chain) {
+		Set<Set<GamePiece>> newChains = new HashSet<Set<GamePiece>>();
+		for(GamePiece piece: chain) {
+			Set<GamePiece> visited = new HashSet<GamePiece>();
+			Queue<GamePiece> queue = new LinkedList<GamePiece>();
+			queue.add(piece);
+			visited.add(piece);
+			while(!queue.isEmpty()) {
+				GamePiece p = queue.poll();
+				for(GamePiece neighbor: p.getNeighbors()) {
+					if(neighbor.isColor() == piece.isColor() && !visited.contains(neighbor)) {
+						visited.add(neighbor);
+						queue.add(neighbor);
+					}
+				}
+			}
+			boolean isNewChain = true;
+			for(Set<GamePiece> newChain: newChains) {
+				if(visited.equals(newChain)) isNewChain = false;
+			}
+			if(isNewChain) newChains.add(visited);
+		}
+		Iterator<Set<GamePiece>> iterator = chains.iterator();
+		while(iterator.hasNext())
+			if(iterator.next().equals(chain)) iterator.remove();
+		chains.addAll(newChains);
 	}
 	
 }
