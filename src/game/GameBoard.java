@@ -609,5 +609,20 @@ public class GameBoard extends JPanel {
 			if(iterator.next().equals(chain)) iterator.remove();
 		chains.addAll(newChains);
 	}
+
+	private void checkWin() {
+		for(Set<GamePiece> chain: chains) {
+			Set<Character> edges = new HashSet<Character>();
+			boolean color = false;
+			for(GamePiece piece: chain) {
+				edges.addAll(piece.getWallNeighbors());
+				color = piece.isColor();
+			}
+			if(edges.size() == 4) {
+				if(color) System.out.println("Black wins!");
+				else System.out.println("White wins!");
+			}
+		}
+	}
 	
 }
