@@ -293,10 +293,12 @@ public class GameBoard extends JPanel {
 
 	public void swap() {
 		firstSelectionPiece.setColor(!firstSelectionPiece.isColor());
-		secondSelectionPiece.setColor(!secondSelectionPiece.isColor());
 		updateChain(firstSelectionPiece);
+		secondSelectionPiece.setColor(!secondSelectionPiece.isColor());
 		updateChain(secondSelectionPiece);
 		
+		checkWin();
+		checkCapture();
 		firstSelectionPiece = secondSelectionPiece;
 		secondSelectionPiece = null;
 		frame.repaint();
@@ -320,6 +322,9 @@ public class GameBoard extends JPanel {
 			gamePieces.remove(piece);
 			for(GamePiece neighbor: piece.getNeighbors()) {
 				neighbor.getNeighbors().remove(piece);
+			}
+			for(GamePiece surrounding: piece.getSurrounding()) {
+				surrounding.getSurrounding().remove(piece);
 			}
 			chain.remove(piece);
 		}
@@ -353,6 +358,9 @@ public class GameBoard extends JPanel {
 				for(GamePiece neighbor: piece.getNeighbors()) {
 					neighbor.getNeighbors().remove(piece);
 				}
+				for(GamePiece surrounding: piece.getSurrounding()) {
+					surrounding.getSurrounding().remove(piece);
+				}
 				Set<GamePiece> chain = findChain(piece);
 				chain.remove(piece);
 				newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), "????", gamePieces);
@@ -377,6 +385,9 @@ public class GameBoard extends JPanel {
 				gamePieces.remove(piece);
 				for(GamePiece neighbor: piece.getNeighbors()) {
 					neighbor.getNeighbors().remove(piece);
+				}
+				for(GamePiece surrounding: piece.getSurrounding()) {
+					surrounding.getSurrounding().remove(piece);
 				}
 				Set<GamePiece> chain = findChain(piece);
 				chain.remove(piece);
@@ -621,6 +632,42 @@ public class GameBoard extends JPanel {
 			if(edges.size() == 4) {
 				if(color) System.out.println("Black wins!");
 				else System.out.println("White wins!");
+			}
+		}
+	}
+
+	private void checkCapture() {
+		boolean done = false;
+		while(!done) {
+			done = true;
+			for(Set<GamePiece> chain: chains) {
+				Set<GamePiece> capturingChain = null;
+				boolean isCaptured = true;
+				for(GamePiece piece: chain) {
+					if(piece.getWallNeighbors().size() > 0) {
+						isCaptured = false;
+						break;
+					}
+					for(GamePiece surrounding: piece.getSurrounding()) {
+						if(!findChain(surrounding).equals(chain)) {
+							if(capturingChain == null) capturingChain = findChain(surrounding);
+							else if(!capturingChain.equals(findChain(surrounding))) {
+								isCaptured = false;
+								break;
+							}
+						}
+					}
+					if(!isCaptured) break;
+				}
+				if(isCaptured) {
+					for(GamePiece piece: chain) {
+						piece.setColor(!piece.isColor());
+						updateChain(piece);
+					}
+					frame.repaint();
+					done = false;
+					break;
+				}
 			}
 		}
 	}

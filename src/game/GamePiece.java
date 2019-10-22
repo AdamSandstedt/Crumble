@@ -17,6 +17,7 @@ public class GamePiece {
 	private String shape;
 	private Set<GamePiece> neighbors;
 	private Set<Character> wallNeighbors;
+	private Set<GamePiece> surrounding;
 	
 	public static final int X_OFFSET = 20;
 	public static final int Y_OFFSET = 20;
@@ -52,11 +53,29 @@ public class GamePiece {
 				piece.getNeighbors().add(this);
 			}
 		}
+		surrounding = new HashSet<GamePiece>();
+		for(GamePiece piece: neighbors) {
+			surrounding.add(piece);
+			piece.getSurrounding().add(this);
+		}
+		for(GamePiece piece: gamePieces) {
+			if(piece.getBottomLeft().getX() == topRight.getX() && piece.getBottomLeft().getY() == topRight.getY() ||
+			   piece.getBottomLeft().getX() == topRight.getX() && piece.getTopRight().getY() == bottomLeft.getY() ||
+			   piece.getTopRight().getX() == bottomLeft.getX() && piece.getBottomLeft().getY() == topRight.getY() ||
+			   piece.getTopRight().getX() == bottomLeft.getX() && piece.getTopRight().getY() == bottomLeft.getY() ) {
+				surrounding.add(piece);
+				piece.getSurrounding().add(this);
+			}
+		}
 		wallNeighbors = new HashSet<Character>();
 		if(bottomLeft.getX() == 0) wallNeighbors.add('L'); // left
 		if(bottomLeft.getY() == 0) wallNeighbors.add('B'); // bottom
 		if(topRight.getX() == 6) wallNeighbors.add('R'); // right
 		if(topRight.getY() == 6) wallNeighbors.add('T'); // top
+	}
+
+	public Set<GamePiece> getSurrounding() {
+		return surrounding;
 	}
 
 	public Set<GamePiece> getNeighbors() {
