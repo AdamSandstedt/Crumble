@@ -8,6 +8,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.swing.JButton;
@@ -29,6 +30,7 @@ public class GameBoard extends JPanel {
 	private boolean splitDirection; // 0=vertical, 1=horizontal
 	private boolean showStartPoint;
 	private Set<GamePiece> swapStartPieces;
+	private Set<Set<GamePiece>> chains;
 	
 	public static final Point TURN_TEXT_POSITION = new Point(650, 100);
 	
@@ -63,6 +65,7 @@ public class GameBoard extends JPanel {
 		gamePieces = new HashSet<GamePiece>();
 		buttons = new ArrayList<JButton>();
 		swapStartPieces = new HashSet<GamePiece>();
+		chains = new HashSet<Set<GamePiece>>();
 		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
 	
@@ -86,6 +89,9 @@ public class GameBoard extends JPanel {
 				if(y == 0) location = "" + (int)x;
 				else location = (int)x + "," + (int)y;
 				newPiece = new GamePiece(color, new BoardPoint(x,y), new BoardPoint(x+1,y+1), location, gamePieces);
+				Set<GamePiece> newChain = new HashSet<GamePiece>();
+				newChain.add(newPiece);
+				chains.add(newChain);
 				color = !color;
 				gamePieces.add(newPiece);
 			}
@@ -285,6 +291,9 @@ public class GameBoard extends JPanel {
 	public void swap() {
 		firstSelectionPiece.setColor(!firstSelectionPiece.isColor());
 		secondSelectionPiece.setColor(!secondSelectionPiece.isColor());
+		updateChain(firstSelectionPiece);
+		updateChain(secondSelectionPiece);
+		
 		firstSelectionPiece = secondSelectionPiece;
 		secondSelectionPiece = null;
 		frame.repaint();
@@ -303,13 +312,16 @@ public class GameBoard extends JPanel {
 				piecesToJoin.add(piece);
 			}
 		}
+		Set<GamePiece> chain = findChain(p1);
 		for(GamePiece piece: piecesToJoin) {
 			gamePieces.remove(piece);
 			for(GamePiece neighbor: piece.getNeighbors()) {
 				neighbor.getNeighbors().remove(piece);
 			}
+			chain.remove(piece);
 		}
 		gamePieces.add(newPiece);
+		chain.add(newPiece);
 		firstSelectionPiece = newPiece;
 		
 		showJoinRect = false;
@@ -338,8 +350,12 @@ public class GameBoard extends JPanel {
 				for(GamePiece neighbor: piece.getNeighbors()) {
 					neighbor.getNeighbors().remove(piece);
 				}
+				Set<GamePiece> chain = findChain(piece);
+				chain.remove(piece);
 				newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), "????", gamePieces);
 				newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), "????", gamePieces);
+				chain.add(newPieceTop);
+				chain.add(newPieceBottom);
 				gamePieces.add(newPieceBottom);
 				gamePieces.add(newPieceTop);
 				swapStartPieces.add(newPieceTop);
@@ -359,8 +375,12 @@ public class GameBoard extends JPanel {
 				for(GamePiece neighbor: piece.getNeighbors()) {
 					neighbor.getNeighbors().remove(piece);
 				}
+				Set<GamePiece> chain = findChain(piece);
+				chain.remove(piece);
 				newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), "????", gamePieces);
 				newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), "????", gamePieces);
+				chain.add(newPieceRight);
+				chain.add(newPieceLeft);
 				gamePieces.add(newPieceRight);
 				gamePieces.add(newPieceLeft);
 				swapStartPieces.add(newPieceRight);
@@ -514,6 +534,47 @@ public class GameBoard extends JPanel {
 		}
 		else {					
 			return false;
+		}
+	}
+	
+	private Set<GamePiece> findChain(GamePiece piece) {
+		for(Set<GamePiece> chain: chains) {
+			if(chain.contains(piece)) return chain;
+		}
+		return null;
+	}
+
+	private void updateChain(GamePiece piece) {
+		Set<GamePiece> oldChain = findChain(piece);
+		oldChain.remove(piece);
+		if(oldChain.isEmpty()) chains.remove(oldChain);
+		Set<GamePiece> chain = null;
+		for(GamePiece neighbor: piece.getNeighbors()) {
+			if(neighbor.isColor() == piece.isColor()) {
+				chain = findChain(neighbor);
+				chain.add(piece);
+				break;
+			}
+		}
+		if(chain != null) {
+			for(GamePiece neighbor: piece.getNeighbors()) {
+				if(neighbor.isColor() == piece.isColor() && findChain(neighbor) != chain) {
+					Set<GamePiece> neighborChain = findChain(neighbor);
+					for(GamePiece chainPiece: neighborChain) {
+						chain.add(chainPiece);
+					}
+					neighborChain.clear();
+				}
+			}
+			Iterator<Set<GamePiece>> iterator = chains.iterator();
+			while(iterator.hasNext()) {
+				if(iterator.next().isEmpty()) iterator.remove();
+			}
+		}
+		else {
+			Set<GamePiece> newChain = new HashSet<GamePiece>();
+			newChain.add(piece);
+			chains.add(newChain);
 		}
 	}
 	
