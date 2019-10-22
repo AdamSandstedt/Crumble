@@ -85,7 +85,7 @@ public class GameBoard extends JPanel {
 			for(double y = 0; y < 6; y++) {
 				if(y == 0) location = "" + (int)x;
 				else location = (int)x + "," + (int)y;
-				newPiece = new GamePiece(color, new BoardPoint(x,y), new BoardPoint(x+1,y+1), location);
+				newPiece = new GamePiece(color, new BoardPoint(x,y), new BoardPoint(x+1,y+1), location, gamePieces);
 				color = !color;
 				gamePieces.add(newPiece);
 			}
@@ -297,7 +297,7 @@ public class GameBoard extends JPanel {
 			if(piece.getBottomLeft().equals(firstSelectionPoint)) p1 = piece;
 			if(piece.getTopRight().equals(secondSelectionPoint)) p2 = piece;
 		}
-		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), "????");
+		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), "????", gamePieces);
 		for(GamePiece piece: gamePieces) {
 			if(newPiece.contains(piece)) {
 				piecesToJoin.add(piece);
@@ -305,6 +305,9 @@ public class GameBoard extends JPanel {
 		}
 		for(GamePiece piece: piecesToJoin) {
 			gamePieces.remove(piece);
+			for(GamePiece neighbor: piece.getNeighbors()) {
+				neighbor.getNeighbors().remove(piece);
+			}
 		}
 		gamePieces.add(newPiece);
 		firstSelectionPiece = newPiece;
@@ -332,8 +335,11 @@ public class GameBoard extends JPanel {
 			GamePiece newPieceBottom, newPieceTop;
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
-				newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), "????");
-				newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), "????");
+				for(GamePiece neighbor: piece.getNeighbors()) {
+					neighbor.getNeighbors().remove(piece);
+				}
+				newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), "????", gamePieces);
+				newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), "????", gamePieces);
 				gamePieces.add(newPieceBottom);
 				gamePieces.add(newPieceTop);
 				swapStartPieces.add(newPieceTop);
@@ -350,8 +356,11 @@ public class GameBoard extends JPanel {
 			GamePiece newPieceLeft, newPieceRight;
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
-				newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), "????");
-				newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), "????");
+				for(GamePiece neighbor: piece.getNeighbors()) {
+					neighbor.getNeighbors().remove(piece);
+				}
+				newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), "????", gamePieces);
+				newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), "????", gamePieces);
 				gamePieces.add(newPieceRight);
 				gamePieces.add(newPieceLeft);
 				swapStartPieces.add(newPieceRight);

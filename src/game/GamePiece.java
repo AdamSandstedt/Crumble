@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GamePiece {
 	private boolean color; // For now, 0=white, 1=black, but a string or enum might be easier to read
@@ -13,11 +15,13 @@ public class GamePiece {
 	private BoardPoint horizontalSplitStart, verticalSplitStart;
 	private BoardPoint horizontalSplitEnd, verticalSplitEnd;
 	private String shape;
+	private Set<GamePiece> neighbors;
+	private Set<Character> wallNeighbors;
 	
 	public static final int X_OFFSET = 20;
 	public static final int Y_OFFSET = 20;
 	
-	public GamePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, String location) {
+	public GamePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, String location, Set<GamePiece> gamePieces) {
 		this.color = color;
 		this.bottomLeft = bottomLeft;
 		this.topRight = topRight;
@@ -41,6 +45,31 @@ public class GamePiece {
 			verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY());
 			verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY());
 		}
+		neighbors = new HashSet<GamePiece>();
+		for(GamePiece piece: gamePieces) {
+			if(isNeighbor(piece)) {
+				neighbors.add(piece);
+				piece.getNeighbors().add(this);
+			}
+		}
+		wallNeighbors = new HashSet<Character>();
+		if(bottomLeft.getX() == 0) wallNeighbors.add('L'); // left
+		if(bottomLeft.getY() == 0) wallNeighbors.add('B'); // bottom
+		if(topRight.getX() == 6) wallNeighbors.add('R'); // right
+		if(topRight.getY() == 6) wallNeighbors.add('T'); // top
+	}
+
+	public Set<GamePiece> getNeighbors() {
+		return neighbors;
+	}
+
+	private boolean isNeighbor(GamePiece piece) {
+		if(bottomLeft.getX() == piece.getTopRight().getX() && bottomLeft.getY() < piece.getTopRight().getY() && topRight.getY() > piece.getBottomLeft().getY() ||
+		   topRight.getX() == piece.getBottomLeft().getX() && bottomLeft.getY() < piece.getTopRight().getY() && topRight.getY() > piece.getBottomLeft().getY() ||
+		   bottomLeft.getY() == piece.getTopRight().getY() && bottomLeft.getX() < piece.getTopRight().getX() && topRight.getX() > piece.getBottomLeft().getX() ||
+		   topRight.getY() == piece.getBottomLeft().getY() && bottomLeft.getX() < piece.getTopRight().getX() && topRight.getX() > piece.getBottomLeft().getX() )
+			return true;
+		else return false;
 	}
 
 	public String getShape() {
@@ -158,6 +187,10 @@ public class GamePiece {
 		else {
 			return false;
 		}
+	}
+
+	public Set<Character> getWallNeighbors() {
+		return wallNeighbors;
 	}
 	
 }
