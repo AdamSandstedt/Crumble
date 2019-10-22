@@ -40,6 +40,7 @@ public class GameBoard extends JPanel {
 				currentTurn = !currentTurn;
 				currentAction = "split";
 				firstSelectionPiece = null;
+				showStartPoint = true;
 				buttons.get(0).setEnabled(true);
 				buttons.get(1).setEnabled(true);
 				buttons.get(2).setEnabled(false);
@@ -74,7 +75,7 @@ public class GameBoard extends JPanel {
 		showSplitLine = false;
 		showJoinRect = false;
 		splitDirection = false;
-		showStartPoint = false;
+		showStartPoint = true;
 		
 		GamePiece newPiece;
 		String location;
@@ -193,7 +194,10 @@ public class GameBoard extends JPanel {
 		
 		board.frame.addMouseListener(new MouseListener() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseClicked(MouseEvent e) {}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
 				Point p = e.getPoint();
 				p.translate(0, -22);
 				if(board.boardOutline.contains(p)) {
@@ -231,10 +235,26 @@ public class GameBoard extends JPanel {
 						}
 					}
 				}
+				if(board.firstSelectionPoint != null) {
+					if(board.currentAction.equals("split")) {
+						board.showSplitLine = true;
+						board.showStartPoint = false;
+					}
+					else if(board.currentAction.equals("join")) {
+						board.showStartPoint = false;
+						board.showJoinRect = true;
+					}
+				}
+				else {
+					if(board.currentAction.equals("split")) {
+						board.showStartPoint = true;
+					}
+					else if(board.currentAction.equals("join")) {
+						board.showJoinRect = false;
+						board.showStartPoint = true;
+					}
+				}
 			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {}
@@ -255,25 +275,7 @@ public class GameBoard extends JPanel {
 			public void mouseMoved(MouseEvent e) {
 				board.mousePosition = e.getPoint();
 				board.mousePosition.translate(0, -22);
-				if(board.firstSelectionPoint != null) {
-					if(board.currentAction.equals("split")) {
-						board.showSplitLine = true;
-						board.showStartPoint = false;
-					}
-					else if(board.currentAction.equals("join")) {
-						board.showStartPoint = false;
-						board.showJoinRect = true;
-					}
-				}
-				else {
-					if(board.currentAction.equals("split")) {
-						board.showStartPoint = true;
-					}
-					else if(board.currentAction.equals("join")) {
-						board.showJoinRect = false;
-						board.showStartPoint = true;
-					}
-				}
+				
 				board.frame.repaint();				
 			}
 			
