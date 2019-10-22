@@ -12,8 +12,14 @@ public class BoardPoint {
 	}
 	
 	BoardPoint(Point p) {
-		this.x = ((double)p.x - GamePiece.X_OFFSET)/100;
-		this.y = ((double)GamePiece.Y_OFFSET + 600 - p.y)/100;
+		if(p != null) {
+			this.x = ((double)p.x - GamePiece.X_OFFSET)/100;
+			this.y = ((double)GamePiece.Y_OFFSET + 600 - p.y)/100;
+		}
+		else {
+			this.x = 0;
+			this.y = 0;
+		}
 	}
 
 	public double getX() {
