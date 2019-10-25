@@ -67,7 +67,7 @@ public class GamePiece {
 				piece.getSurrounding().add(this);
 			}
 		}
-		wallNeighbors = new HashSet<Character>();
+		wallNeighbors = new HashSet<>();
 		if(bottomLeft.getX() == 0) wallNeighbors.add('L'); // left
 		if(bottomLeft.getY() == 0) wallNeighbors.add('B'); // bottom
 		if(topRight.getX() == 6) wallNeighbors.add('R'); // right
@@ -82,13 +82,15 @@ public class GamePiece {
 		return neighbors;
 	}
 
-	private boolean isNeighbor(GamePiece piece) {
-		if(bottomLeft.getX() == piece.getTopRight().getX() && bottomLeft.getY() < piece.getTopRight().getY() && topRight.getY() > piece.getBottomLeft().getY() ||
-		   topRight.getX() == piece.getBottomLeft().getX() && bottomLeft.getY() < piece.getTopRight().getY() && topRight.getY() > piece.getBottomLeft().getY() ||
-		   bottomLeft.getY() == piece.getTopRight().getY() && bottomLeft.getX() < piece.getTopRight().getX() && topRight.getX() > piece.getBottomLeft().getX() ||
-		   topRight.getY() == piece.getBottomLeft().getY() && bottomLeft.getX() < piece.getTopRight().getX() && topRight.getX() > piece.getBottomLeft().getX() )
-			return true;
-		else return false;
+	private boolean isNeighbor(GamePiece piece) { // check that this and piece share some edge
+		return bottomLeft.getX() == piece.getTopRight().getX() && // left edge (of the object: this)
+			   bottomLeft.getY() < piece.getTopRight().getY() && topRight.getY() > piece.getBottomLeft().getY() ||
+			   topRight.getX() == piece.getBottomLeft().getX() && // right edge
+			   bottomLeft.getY() < piece.getTopRight().getY() && topRight.getY() > piece.getBottomLeft().getY() ||
+			   bottomLeft.getY() == piece.getTopRight().getY() && // bottom edge
+			   bottomLeft.getX() < piece.getTopRight().getX() && topRight.getX() > piece.getBottomLeft().getX() ||
+			   topRight.getY() == piece.getBottomLeft().getY() && // top edge
+			   bottomLeft.getX() < piece.getTopRight().getX() && topRight.getX() > piece.getBottomLeft().getX() ;
 	}
 
 	public String getShape() {
@@ -189,23 +191,13 @@ public class GamePiece {
 	}
 
 	public boolean contains(BoardPoint p) {
-		if(p.getX() < topRight.getX() && p.getX() > bottomLeft.getX()
-		   && p.getY() < topRight.getY() && p.getY() > bottomLeft.getY()) {
-			return true;
-		}
-		else {			
-			return false;
-		}
+		return p.getX() < topRight.getX() && p.getX() > bottomLeft.getX() &&
+		       p.getY() < topRight.getY() && p.getY() > bottomLeft.getY() ;
 	}
 	
 	public boolean contains(GamePiece p) {
-		if(p.getTopRight().getX() <= topRight.getX() && p.getBottomLeft().getX() >= bottomLeft.getX() &&
-		   p.getTopRight().getY() <= topRight.getY() && p.getBottomLeft().getY() >= bottomLeft.getY() ) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return p.getTopRight().getX() <= topRight.getX() && p.getBottomLeft().getX() >= bottomLeft.getX() &&
+		       p.getTopRight().getY() <= topRight.getY() && p.getBottomLeft().getY() >= bottomLeft.getY() ;
 	}
 
 	public Set<Character> getWallNeighbors() {
