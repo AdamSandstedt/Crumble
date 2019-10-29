@@ -631,39 +631,46 @@ public class GameBoard extends JPanel {
 	}
 
 	private void checkCapture() {
-		boolean done = false;
-		while(!done) {
-			done = true;
-			for(Set<GamePiece> chain: chains) {
-				Set<GamePiece> capturingChain = null;
-				boolean isCaptured = true;
+		Set<Set<GamePiece>> isCaptured = new HashSet<>(chains); //Assume that each chain is captured until we figure out that it isn't
+		
+		for(Set<GamePiece> chain: chains) {
+			if(isCaptured.contains(chain)) {
 				for(GamePiece piece: chain) {
-					if(piece.getWallNeighbors().size() > 0) {
-						isCaptured = false;
-						break;
-					}
-					for(GamePiece surrounding: piece.getSurrounding()) {
-						if(!findChain(surrounding).equals(chain)) {
-							if(capturingChain == null) capturingChain = findChain(surrounding);
-							else if(!capturingChain.equals(findChain(surrounding))) {
-								isCaptured = false;
-								break;
+					if(!piece.getWallNeighbors().isEmpty()) isCaptured.remove(chain);
+				}
+				if(!isCaptured.contains(chain)) {
+					Queue<Set<GamePiece>> notCaptured = new LinkedList<>();
+					for(GamePiece piece: chain) {
+						for(GamePiece surrounding: piece.getSurrounding()) {
+							if(surrounding.isColor() == piece.isColor()) {
+								Set<GamePiece> surroundingChain = findChain(surrounding);
+								if(isCaptured.contains(surroundingChain) && !notCaptured.contains(surroundingChain)) notCaptured.add(surroundingChain);
 							}
 						}
 					}
-					if(!isCaptured) break;
-				}
-				if(isCaptured) {
-					Set<GamePiece> copyChain = new HashSet<GamePiece>(chain);
-					for(GamePiece piece: copyChain) {
-						piece.setColor(!piece.isColor());
-						updateChain(piece);
+					while(!notCaptured.isEmpty()) {
+						Set<GamePiece> currentChain = notCaptured.poll();
+						isCaptured.remove(currentChain);
+						for(GamePiece piece: currentChain) {
+							for(GamePiece surrounding: piece.getSurrounding()) {
+								if(surrounding.isColor() == piece.isColor()) {
+									Set<GamePiece> surroundingChain = findChain(surrounding);
+									if(isCaptured.contains(surroundingChain) && !notCaptured.contains(surroundingChain)) notCaptured.add(surroundingChain);
+								}
+							}
+						}
 					}
-					frame.repaint();
-					done = false;
-					break;
 				}
 			}
+		}
+		
+		for(Set<GamePiece> capturedChain: isCaptured) {
+			Set<GamePiece> copyChain = new HashSet<>(capturedChain);
+			for(GamePiece piece: copyChain) {
+				piece.setColor(!piece.isColor());
+				updateChain(piece);
+			}
+			frame.repaint();
 		}
 	}
 	
