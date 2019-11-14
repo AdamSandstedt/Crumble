@@ -14,15 +14,12 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class GameBoard extends JPanel {
 	private Set<GamePiece> gamePieces;
 	private boolean currentTurn;  // Same color boolean as in GamePiece 0=white, 1=black
-	private ArrayList<JButton> buttons;
 	private String currentAction;
-	private JFrame frame = new JFrame();
 	private Rectangle boardOutline;
 	private BoardPoint firstSelectionPoint, secondSelectionPoint;
 	private GamePiece firstSelectionPiece, secondSelectionPiece;
@@ -33,49 +30,41 @@ public class GameBoard extends JPanel {
 	private boolean showStartPoint;
 	private Set<GamePiece> swapStartPieces;
 	private Set<Set<GamePiece>> chains;
-	
+	private int width = 600;
+	private int height = 600;
+	private ControlPanel controlPanel;
+	private CrumbleGame crumbleGame;
+	private ButtonListener buttonListener;
+
 	public static final Point TURN_TEXT_POSITION = new Point(650, 100);
-	
-	private ActionListener buttonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent e) { 
-			currentAction = e.getActionCommand();
-			if(currentAction.equals("end turn")) {
-				currentTurn = !currentTurn;
-				currentAction = "split";
-				firstSelectionPiece = null;
-				showStartPoint = true;
-				buttons.get(0).setEnabled(true);
-				buttons.get(1).setEnabled(true);
-				buttons.get(2).setEnabled(false);
-				buttons.get(3).setEnabled(false);
-				frame.repaint();
-			}
-			else if(currentAction.equals("split") || currentAction.equals("join")) {
-				firstSelectionPoint = null;
-				secondSelectionPoint = null;
-				firstSelectionPiece = null;
-				secondSelectionPiece = null;
-				showSplitLine = false;
-				showJoinRect = false;
-				showStartPoint = true;
-				frame.repaint();
-			}
-		}
-	};
 	
 	GameBoard() {
 		gamePieces = new HashSet<>();
-		buttons = new ArrayList<>();
 		swapStartPieces = new HashSet<>();
 		chains = new HashSet<>();
+		buttonListener = new ButtonListener();
+		
+		setPreferredSize(new Dimension(width+GamePiece.X_OFFSET*2, height+GamePiece.Y_OFFSET*2));
+		addMouseListener(new BoardMouseListener());
+		addMouseMotionListener(new BoardMouseMotionListener());
+		
 		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
+	}
+	
+	public GameBoard(CrumbleGame crumbleGame) {
+		this(); // call constructor with no arguments
+		this.crumbleGame = crumbleGame;
+		this.controlPanel = crumbleGame.getControlPanel();
+		if(controlPanel != null) {
+			controlPanel.setGameBoard(this);
+			controlPanel.setButtonListener(buttonListener);
+		}
 	}
 	
 	public void initialize() {
 		currentTurn = true;	// black goes first
 		currentAction = "split";
-		boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, 600, 600);
+		boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, width, height);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
 		showSplitLine = false;
@@ -100,38 +89,10 @@ public class GameBoard extends JPanel {
 			}
 			color = !color;
 		}
-		
-		JButton button = new JButton("Split");
-		button.setBounds(650, 200, 120, 50);
-		button.setActionCommand("split");
-		button.addActionListener(buttonListener);
-		buttons.add(button);
-		
-		button = new JButton("Join");
-		button.setBounds(650, 300, 120, 50);
-		button.setActionCommand("join");
-		button.addActionListener(buttonListener);
-		buttons.add(button);
-		
-		button = new JButton("Swap");
-		button.setBounds(650, 400, 120, 50);
-		button.setActionCommand("swap");
-		button.setEnabled(false);
-		button.addActionListener(buttonListener);
-		buttons.add(button);
-		
-		button = new JButton("End Turn");
-		button.setBounds(650, 500, 120, 50);
-		button.setActionCommand("end turn");
-		button.setEnabled(false);
-		button.addActionListener(buttonListener);
-		buttons.add(button);
 	}
 	
 	@Override
 	public void paintComponent(Graphics g) {
-		g.setColor(getBackground());
-		g.fillRect(0, 0, 800, 800);
 		for(GamePiece piece: gamePieces) {
 			piece.draw(g);
 		}
@@ -187,108 +148,6 @@ public class GameBoard extends JPanel {
 		}
 	}
 
-	public static void main(String[] args) {
-		GameBoard board = new GameBoard();
-		
-		board.frame.setContentPane(board);
-		board.frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-		board.frame.setSize(800, 800);
-		board.frame.setVisible(true);
-		
-		for(JButton button: board.buttons) {
-			board.frame.add(button);
-		}
-		
-		board.frame.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent e) {}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				Point p = e.getPoint();
-				p.translate(0, -22);
-				if(board.boardOutline.contains(p)) {
-					BoardPoint click = new BoardPoint(p);
-					if(board.currentAction.equals("split") || board.currentAction.equals("join")) {
-						if(board.firstSelectionPoint == null) {
-							board.firstSelectionPoint = board.getNearestPoint(click);
-							if(board.currentAction.equals("join") && board.getNearestPoint(click) == null) board.firstSelectionPoint = null;
-						}
-						else {
-							board.secondSelectionPoint = board.getNearestPoint(click);
-							if(board.currentAction.equals("split")) board.split();
-							else board.join();
-						}
-					}
-					else if(board.currentAction.equals("swap")) {
-						if(board.firstSelectionPiece == null) {
-							for(GamePiece piece: board.swapStartPieces) {
-								if(piece.contains(p)) {
-									board.firstSelectionPiece = piece;
-									board.frame.repaint();
-									board.swapStartPieces.clear();
-									break;
-								}
-							}
-						}
-						else {
-							for(GamePiece piece: board.gamePieces) {
-								if(piece.contains(p) && board.validateSwap(board.firstSelectionPiece, piece)) {
-									board.secondSelectionPiece = piece;
-									break;
-								}
-							}
-							if(board.secondSelectionPiece != null) board.swap();
-						}
-					}
-				}
-				if(board.firstSelectionPoint != null) {
-					if(board.currentAction.equals("split")) {
-						board.showSplitLine = true;
-						board.showStartPoint = false;
-					}
-					else if(board.currentAction.equals("join")) {
-						board.showStartPoint = false;
-						board.showJoinRect = true;
-					}
-				}
-				else {
-					if(board.currentAction.equals("split")) {
-						board.showStartPoint = true;
-					}
-					else if(board.currentAction.equals("join")) {
-						board.showJoinRect = false;
-						board.showStartPoint = true;
-					}
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {}
-
-			@Override
-			public void mouseExited(MouseEvent e) {}
-		});
-		
-		board.frame.addMouseMotionListener(new MouseMotionListener() {
-
-			@Override
-			public void mouseDragged(MouseEvent e) {}
-
-			@Override
-			public void mouseMoved(MouseEvent e) {
-				board.mousePosition = e.getPoint();
-				board.mousePosition.translate(0, -22);
-				
-				board.frame.repaint();				
-			}
-			
-		});
-	}
-
 	public void swap() {
 		firstSelectionPiece.setColor(!firstSelectionPiece.isColor());
 		updateChain(firstSelectionPiece);
@@ -299,7 +158,7 @@ public class GameBoard extends JPanel {
 		checkCapture();
 		firstSelectionPiece = secondSelectionPiece;
 		secondSelectionPiece = null;
-		frame.repaint();
+		this.repaint();
 	}
 
 	public void join() {
@@ -333,13 +192,14 @@ public class GameBoard extends JPanel {
 		
 		showJoinRect = false;
 		currentAction = "swap";
+		ArrayList<JButton> buttons = controlPanel.getButtons();
 		buttons.get(0).setEnabled(false);
 		buttons.get(1).setEnabled(false);
 		buttons.get(2).setEnabled(true);
 		buttons.get(3).setEnabled(true);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
-		frame.repaint();
+		this.repaint();
 	}
 
 	public void split() {
@@ -402,13 +262,14 @@ public class GameBoard extends JPanel {
 		
 		showSplitLine = false;
 		currentAction = "swap";
+		ArrayList<JButton> buttons = controlPanel.getButtons();
 		buttons.get(0).setEnabled(false);
 		buttons.get(1).setEnabled(false);
 		buttons.get(2).setEnabled(true);
 		buttons.get(3).setEnabled(true);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
-		frame.repaint();
+		this.repaint();
 	}
 	
 	public BoardPoint getNearestPoint(BoardPoint point) {
@@ -670,7 +531,129 @@ public class GameBoard extends JPanel {
 				piece.setColor(!piece.isColor());
 				updateChain(piece);
 			}
-			frame.repaint();
+			this.repaint();
+		}
+	}
+
+	public void setControlPanel(ControlPanel controlPanel) {
+		this.controlPanel = controlPanel;
+	}
+	
+	public ButtonListener getButtonListener() {
+		return buttonListener;
+	}
+	
+	class ButtonListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) { 
+			currentAction = e.getActionCommand();
+			System.out.println(currentAction);
+			if(currentAction.equals("end turn")) {
+				currentTurn = !currentTurn;
+				currentAction = "split";
+				firstSelectionPiece = null;
+				showStartPoint = true;
+				ArrayList<JButton> buttons = controlPanel.getButtons();
+				buttons.get(0).setEnabled(true);
+				buttons.get(1).setEnabled(true);
+				buttons.get(2).setEnabled(false);
+				buttons.get(3).setEnabled(false);
+				repaint();
+			}
+			else if(currentAction.equals("split") || currentAction.equals("join")) {
+				firstSelectionPoint = null;
+				secondSelectionPoint = null;
+				firstSelectionPiece = null;
+				secondSelectionPiece = null;
+				showSplitLine = false;
+				showJoinRect = false;
+				showStartPoint = true;
+				repaint();
+			}
+		}
+	}
+	
+	public class BoardMouseListener implements MouseListener {
+		@Override
+		public void mouseClicked(MouseEvent e) {}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			Point p = e.getPoint();
+			if(boardOutline.contains(p)) {
+				BoardPoint click = new BoardPoint(p);
+				if(currentAction.equals("split") || currentAction.equals("join")) {
+					if(firstSelectionPoint == null) {
+						firstSelectionPoint = getNearestPoint(click);
+						if(currentAction.equals("join") && getNearestPoint(click) == null) firstSelectionPoint = null;
+					}
+					else {
+						secondSelectionPoint = getNearestPoint(click);
+						if(currentAction.equals("split")) split();
+						else join();
+					}
+				}
+				else if(currentAction.equals("swap")) {
+					if(firstSelectionPiece == null) {
+						for(GamePiece piece: swapStartPieces) {
+							if(piece.contains(p)) {
+								firstSelectionPiece = piece;
+								repaint();
+								swapStartPieces.clear();
+								break;
+							}
+						}
+					}
+					else {
+						for(GamePiece piece: gamePieces) {
+							if(piece.contains(p) && validateSwap(firstSelectionPiece, piece)) {
+								secondSelectionPiece = piece;
+								break;
+							}
+						}
+						if(secondSelectionPiece != null) swap();
+					}
+				}
+			}
+			if(firstSelectionPoint != null) {
+				if(currentAction.equals("split")) {
+					showSplitLine = true;
+					showStartPoint = false;
+				}
+				else if(currentAction.equals("join")) {
+					showStartPoint = false;
+					showJoinRect = true;
+				}
+			}
+			else {
+				if(currentAction.equals("split")) {
+					showStartPoint = true;
+				}
+				else if(currentAction.equals("join")) {
+					showJoinRect = false;
+					showStartPoint = true;
+				}
+			}
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {}
+
+		@Override
+		public void mouseExited(MouseEvent e) {}
+	}
+	
+	public class BoardMouseMotionListener implements MouseMotionListener {
+		@Override
+		public void mouseDragged(MouseEvent e) {}
+		
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			mousePosition = e.getPoint();
+			repaint();				
 		}
 	}
 	
