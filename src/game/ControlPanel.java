@@ -1,12 +1,11 @@
 package game;
 
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import game.GameBoard.ButtonListener;
 
@@ -15,10 +14,14 @@ public class ControlPanel extends JPanel {
 	private ButtonListener buttonListener;
 	private GameBoard gameBoard;
 	private CrumbleGame crumbleGame;
+	private TurnTextPanel turnTextPanel;
 
 	public ControlPanel() {
 		buttons = new ArrayList<>();
-		this.setLayout(new GridLayout(4,1));
+		this.setLayout(new GridLayout(5,1));
+		
+		turnTextPanel = new TurnTextPanel();
+		add(turnTextPanel);
 		
 		JButton button = new JButton("Split");
 		button.setBounds(650, 200, 120, 50);
@@ -60,6 +63,10 @@ public class ControlPanel extends JPanel {
 		}
 	}
 	
+	public void setCurrentTurn(String currentTurn) {
+		turnTextPanel.setCurrentTurn(currentTurn);
+	}
+
 	public ArrayList<JButton> getButtons() {
 		return buttons;
 	}
@@ -70,5 +77,23 @@ public class ControlPanel extends JPanel {
 
 	public void setButtonListener(ButtonListener buttonListener) {
 		this.buttonListener = buttonListener;
+	}
+	
+	public class TurnTextPanel extends JPanel {
+		JTextArea textArea;
+		
+		public TurnTextPanel() {
+			setLayout(new GridLayout());
+			textArea = new JTextArea();
+			textArea.setText("Black's" + System.lineSeparator() + "Turn");
+			textArea.setEditable(false);
+			textArea.setFont(getFont().deriveFont((float)30));
+			add(textArea);
+		}
+		
+		public void setCurrentTurn(String currentTurn) {
+			textArea.setText(currentTurn + System.lineSeparator() + "Turn");
+			repaint();
+		}
 	}
 }

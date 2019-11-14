@@ -35,8 +35,6 @@ public class GameBoard extends JPanel {
 	private ControlPanel controlPanel;
 	private CrumbleGame crumbleGame;
 	private ButtonListener buttonListener;
-
-	public static final Point TURN_TEXT_POSITION = new Point(650, 100);
 	
 	GameBoard() {
 		gamePieces = new HashSet<>();
@@ -101,12 +99,6 @@ public class GameBoard extends JPanel {
 	
 	public void draw(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
-		String turnText;	//Set the turn text to the correct color and display it on the board
-		if(currentTurn) turnText = "Black's Turn";
-		else turnText = "White's Turn";
-		g.setColor(Color.black);
-		g.setFont(g.getFont().deriveFont((float)20));
-		g.drawString(turnText, TURN_TEXT_POSITION.x, TURN_TEXT_POSITION.y);
 		g.drawRect(boardOutline.x, boardOutline.y, boardOutline.width, boardOutline.height);
 		if(showStartPoint) {
 			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition));
@@ -146,6 +138,10 @@ public class GameBoard extends JPanel {
 			g2.setStroke(new BasicStroke(4));
 			g2.drawRect(x1, y1, x2-x1, y2-y1);
 		}
+	}
+
+	public boolean isCurrentTurn() {
+		return currentTurn;
 	}
 
 	public void swap() {
@@ -547,7 +543,6 @@ public class GameBoard extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) { 
 			currentAction = e.getActionCommand();
-			System.out.println(currentAction);
 			if(currentAction.equals("end turn")) {
 				currentTurn = !currentTurn;
 				currentAction = "split";
@@ -559,6 +554,8 @@ public class GameBoard extends JPanel {
 				buttons.get(2).setEnabled(false);
 				buttons.get(3).setEnabled(false);
 				repaint();
+				if(currentTurn) controlPanel.setCurrentTurn("Black's");
+				else controlPanel.setCurrentTurn("White's");
 			}
 			else if(currentAction.equals("split") || currentAction.equals("join")) {
 				firstSelectionPoint = null;
