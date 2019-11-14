@@ -35,9 +35,12 @@ public class BoardPoint {
 		return "Point [x=" + x + ", y=" + y + "]";
 	}
 
-	public boolean equals(BoardPoint p) {
-		if(this.x == p.getX() && this.y == p.getY()) return true;
-		else return false;
+	@Override
+	public boolean equals(Object o) {
+		if(o == null) return false;
+		if(!o.getClass().equals(BoardPoint.class)) return false;
+		BoardPoint p = (BoardPoint) o;
+		return this.x == p.getX() && this.y == p.getY();
 	}
 	
 	public double distanceSq(BoardPoint p) {
