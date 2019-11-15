@@ -224,6 +224,7 @@ public class GameBoard extends JPanel {
 				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), "????", gamePieces);
 				gamePieces.add(newPieceTop);
 				chain.add(newPieceTop);
+				newPieceBottom.updateLocationsAbove();
 				swapStartPieces.add(newPieceTop);
 				swapStartPieces.add(newPieceBottom);
 			}

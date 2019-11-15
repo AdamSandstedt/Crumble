@@ -210,5 +210,19 @@ public class GamePiece {
 	public Set<Character> getWallNeighbors() {
 		return wallNeighbors;
 	}
+
+	public void updateLocationsAbove() {
+		for(GamePiece piece: neighbors) {
+			if(piece.getBottomLeft().getX() == this.bottomLeft.getX() && piece.getBottomLeft().getY() > this.bottomLeft.getY()) {
+				piece.setLocation("????");
+				piece.updateLocationsAbove();
+				break;
+			}
+		}
+	}
+
+	private void setLocation(String location) {
+		this.location = location;
+	}
 	
 }
