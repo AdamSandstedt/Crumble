@@ -15,32 +15,32 @@ public class ControlPanel extends JPanel {
 	private GameBoard gameBoard;
 	private CrumbleGame crumbleGame;
 	private TurnTextPanel turnTextPanel;
+	private UndoRedoPanel undoRedoPanel;
 
 	public ControlPanel() {
 		buttons = new ArrayList<>();
-		this.setLayout(new GridLayout(5,1));
+		this.setLayout(new GridLayout(6,1));
 		
 		turnTextPanel = new TurnTextPanel();
 		add(turnTextPanel);
 		
+		undoRedoPanel = new UndoRedoPanel();
+		add(undoRedoPanel);
+		
 		JButton button = new JButton("Split");
-		button.setBounds(650, 200, 120, 50);
 		button.setActionCommand("split");
 		buttons.add(button);
 		
 		button = new JButton("Join");
-		button.setBounds(650, 300, 120, 50);
 		button.setActionCommand("join");
 		buttons.add(button);
 		
 		button = new JButton("Swap");
-		button.setBounds(650, 400, 120, 50);
 		button.setActionCommand("swap");
 		button.setEnabled(false);
 		buttons.add(button);
 		
 		button = new JButton("End Turn");
-		button.setBounds(650, 500, 120, 50);
 		button.setActionCommand("end turn");
 		button.setEnabled(false);
 		buttons.add(button);
@@ -60,6 +60,8 @@ public class ControlPanel extends JPanel {
 			for(JButton button: buttons) {
 				button.addActionListener(buttonListener);
 			}
+			undoRedoPanel.getUndoButton().addActionListener(buttonListener);
+			undoRedoPanel.getRedoButton().addActionListener(buttonListener);
 		}
 	}
 	
@@ -94,6 +96,34 @@ public class ControlPanel extends JPanel {
 		public void setCurrentTurn(String currentTurn) {
 			textArea.setText(currentTurn + System.lineSeparator() + "Turn");
 			repaint();
+		}
+	}
+	
+	public class UndoRedoPanel extends JPanel {
+		private JButton undoButton;
+		private JButton redoButton;
+		
+		public JButton getUndoButton() {
+			return undoButton;
+		}
+
+		public JButton getRedoButton() {
+			return redoButton;
+		}
+
+		public UndoRedoPanel() {
+			setLayout(new GridLayout(1,2));
+			
+			undoButton = new JButton("Undo");
+			undoButton.setActionCommand("undo");
+			undoButton.setEnabled(false);
+			add(undoButton);
+			
+			redoButton = new JButton("Redo");
+			redoButton.setActionCommand("redo");
+			redoButton.setEnabled(false);
+			add(redoButton);
+
 		}
 	}
 }
