@@ -19,8 +19,8 @@ public class Notation {
 		this.location = new ArrayList<>(n.location);
 	}
 	
-	public Notation notationRight(Notation n) {
-		Notation newNotation = new Notation(n);
+	public Notation notationRight() {
+		Notation newNotation = new Notation(this);
 		ArrayList<Integer> newLocation = newNotation.location;
 		if(newLocation.size() % 2 == 0) {
 			newNotation.location.add(1);
