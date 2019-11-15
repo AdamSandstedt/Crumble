@@ -183,6 +183,13 @@ public class GamePiece {
 			g2.setColor(Color.black);
 		}
 		g2.drawRect(x1, y1, x2-x1, y2-y1);
+		if(color) {
+			g2.setColor(Color.white);
+		}
+		else {
+			g2.setColor(Color.black);
+		}
+		g2.drawString(location, x1+5, y2-5);
 	}
 
 	public boolean contains(Point p) {
