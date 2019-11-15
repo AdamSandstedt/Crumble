@@ -14,6 +14,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class GameBoard extends JPanel {
@@ -151,10 +152,12 @@ public class GameBoard extends JPanel {
 		secondSelectionPiece.setColor(!secondSelectionPiece.isColor());
 		updateChain(secondSelectionPiece);
 		
-		checkWin();
-		checkCapture();
 		firstSelectionPiece = secondSelectionPiece;
 		secondSelectionPiece = null;
+		this.repaint();
+		
+		checkWin(); 
+		checkCapture();
 		this.repaint();
 	}
 
@@ -489,8 +492,10 @@ public class GameBoard extends JPanel {
 				color = piece.isColor();
 			}
 			if(edges.size() == 4) {
-				if(color) System.out.println("Black wins!");
-				else System.out.println("White wins!");
+				String message;
+				if(color) message = "Black wins!";
+				else message = "White wins!";
+				JOptionPane.showMessageDialog(this, message, "Winner!", JOptionPane.INFORMATION_MESSAGE);
 			}
 		}
 	}
