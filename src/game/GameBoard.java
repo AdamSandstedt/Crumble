@@ -35,16 +35,20 @@ public class GameBoard extends JPanel {
 	private ControlPanel controlPanel;
 	private CrumbleGame crumbleGame;
 	private ButtonListener buttonListener;
+	private BoardMouseListener boardMouseListener;
+	private BoardMouseMotionListener boardMouseMotionListener;
 	
 	GameBoard() {
 		gamePieces = new HashSet<>();
 		swapStartPieces = new HashSet<>();
 		chains = new HashSet<>();
 		buttonListener = new ButtonListener();
+		boardMouseListener = new BoardMouseListener();
+		boardMouseMotionListener = new BoardMouseMotionListener();
 		
 		setPreferredSize(new Dimension(width+GamePiece.X_OFFSET*2, height+GamePiece.Y_OFFSET*2));
-		addMouseListener(new BoardMouseListener());
-		addMouseMotionListener(new BoardMouseMotionListener());
+		addMouseListener(boardMouseListener);
+		addMouseMotionListener(boardMouseMotionListener);
 		
 		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
@@ -59,6 +63,33 @@ public class GameBoard extends JPanel {
 		}
 	}
 	
+	public GameBoard(GameBoard board) {
+		this.gamePieces = new HashSet<>(board.gamePieces);
+		this.currentTurn = board.currentTurn;
+		this.currentAction = board.currentAction;
+		this.boardOutline = board.boardOutline;
+		this.firstSelectionPoint = board.firstSelectionPoint;
+		this.secondSelectionPoint = board.secondSelectionPoint;
+		this.firstSelectionPiece = board.firstSelectionPiece;
+		this.secondSelectionPiece = board.secondSelectionPiece;
+		this.showSplitLine = board.showSplitLine;
+		this.showJoinRect = board.showJoinRect;
+		this.mousePosition = board.mousePosition;
+		this.splitDirection = board.splitDirection;
+		this.showStartPoint = board.showStartPoint;
+		this.swapStartPieces = new HashSet<>(board.swapStartPieces);
+		this.chains = new HashSet<>(board.chains);
+		this.width = board.width;
+		this.height = board.height;
+		this.controlPanel = board.controlPanel;
+		this.crumbleGame = board.crumbleGame;
+		this.buttonListener = board.buttonListener;
+		
+		setPreferredSize(new Dimension(width+GamePiece.X_OFFSET*2, height+GamePiece.Y_OFFSET*2));
+		addMouseListener(new BoardMouseListener());
+		addMouseMotionListener(new BoardMouseMotionListener());
+	}
+
 	public void initialize() {
 		currentTurn = true;	// black goes first
 		currentAction = "split";
@@ -149,11 +180,13 @@ public class GameBoard extends JPanel {
 		updateChain(firstSelectionPiece);
 		secondSelectionPiece.setColor(!secondSelectionPiece.isColor());
 		updateChain(secondSelectionPiece);
+		firstSelectionPiece = secondSelectionPiece;
+		secondSelectionPiece = null;
 		
 		checkWin();
 		checkCapture();
-		firstSelectionPiece = secondSelectionPiece;
-		secondSelectionPiece = null;
+		
+		crumbleGame.saveState();
 		this.repaint();
 	}
 
@@ -195,6 +228,8 @@ public class GameBoard extends JPanel {
 		buttons.get(3).setEnabled(true);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
+		
+		crumbleGame.saveState();
 		this.repaint();
 	}
 
@@ -265,9 +300,15 @@ public class GameBoard extends JPanel {
 		buttons.get(3).setEnabled(true);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
+		
+		crumbleGame.saveState();
 		this.repaint();
 	}
 	
+	public String getCurrentAction() {
+		return currentAction;
+	}
+
 	public BoardPoint getNearestPoint(BoardPoint point) {
 		double minSquareDistance = 100;
 		BoardPoint nearestPoint = null;
@@ -566,6 +607,12 @@ public class GameBoard extends JPanel {
 				showJoinRect = false;
 				showStartPoint = true;
 				repaint();
+			}
+			else if(currentAction.equals("undo")) {
+				crumbleGame.loadState("undo");
+			}
+			else if(currentAction.equals("redo")) {
+				crumbleGame.loadState("redo");
 			}
 		}
 	}

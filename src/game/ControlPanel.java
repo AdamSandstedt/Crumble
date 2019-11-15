@@ -50,6 +50,10 @@ public class ControlPanel extends JPanel {
 		}
 	}
 	
+	public UndoRedoPanel getUndoRedoPanel() {
+		return undoRedoPanel;
+	}
+
 	public ControlPanel(CrumbleGame crumbleGame) {
 		this(); // call constructor with no arguments
 		this.crumbleGame = crumbleGame;
@@ -79,6 +83,14 @@ public class ControlPanel extends JPanel {
 
 	public void setButtonListener(ButtonListener buttonListener) {
 		this.buttonListener = buttonListener;
+	}
+	
+	public void enableUndo(Boolean b) {
+		undoRedoPanel.getUndoButton().setEnabled(b);
+	}
+	
+	public void enableRedo(Boolean b) {
+		undoRedoPanel.getRedoButton().setEnabled(b);
 	}
 	
 	public class TurnTextPanel extends JPanel {
@@ -126,4 +138,5 @@ public class ControlPanel extends JPanel {
 
 		}
 	}
+	
 }
