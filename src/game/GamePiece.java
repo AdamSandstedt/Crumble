@@ -11,7 +11,7 @@ public class GamePiece {
 	private boolean color; // For now, 0=white, 1=black, but a string or enum might be easier to read
 	private BoardPoint bottomLeft;
 	private BoardPoint topRight;
-	private String location;
+	private Notation notation;
 	private BoardPoint horizontalSplitStart, verticalSplitStart;
 	private BoardPoint horizontalSplitEnd, verticalSplitEnd;
 	private String shape;
@@ -22,11 +22,11 @@ public class GamePiece {
 	public static final int X_OFFSET = 20;
 	public static final int Y_OFFSET = 20;
 	
-	public GamePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, String location, Set<GamePiece> gamePieces) {
+	public GamePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, Notation notation, Set<GamePiece> gamePieces) {
 		this.color = color;
 		this.bottomLeft = bottomLeft;
 		this.topRight = topRight;
-		this.location = location;
+		this.notation = notation;
 		double width = topRight.getX()-bottomLeft.getX();
 		double height = topRight.getY()-bottomLeft.getY();
 		if(width == height) {
@@ -144,7 +144,7 @@ public class GamePiece {
 	@Override
 	public String toString() {
 		return "GamePiece [color=" + color + ", bottomLeft=" + bottomLeft + ", topRight=" + topRight + ", location="
-				+ location + "]";
+				+ notation + "]";
 	}
 
 	public void setColor(boolean color) {
@@ -159,8 +159,8 @@ public class GamePiece {
 		return topRight;
 	}
 
-	public String getLocation() {
-		return location;
+	public Notation getNotation() {
+		return notation;
 	}
 
 	public void draw(Graphics g) {
@@ -189,7 +189,7 @@ public class GamePiece {
 		else {
 			g2.setColor(Color.black);
 		}
-		g2.drawString(location, x1+5, y2-5);
+		g2.drawString(notation.toString(), x1+5, y2-5);
 	}
 
 	public boolean contains(Point p) {
@@ -214,15 +214,15 @@ public class GamePiece {
 	public void updateLocationsAbove() {
 		for(GamePiece piece: neighbors) {
 			if(piece.getBottomLeft().getX() == this.bottomLeft.getX() && piece.getBottomLeft().getY() > this.bottomLeft.getY()) {
-				piece.setLocation("????");
+				piece.setNotation(this.notation.notationUp());
 				piece.updateLocationsAbove();
 				break;
 			}
 		}
 	}
 
-	private void setLocation(String location) {
-		this.location = location;
+	private void setNotation(Notation notation) {
+		this.notation = notation;
 	}
 	
 }
