@@ -18,6 +18,7 @@ public class GamePiece {
 	private Set<GamePiece> neighbors;
 	private Set<Character> wallNeighbors;
 	private Set<GamePiece> surrounding;
+	private static boolean showNotation = false;
 	
 	public static final int X_OFFSET = 20;
 	public static final int Y_OFFSET = 20;
@@ -183,13 +184,18 @@ public class GamePiece {
 			g2.setColor(Color.black);
 		}
 		g2.drawRect(x1, y1, x2-x1, y2-y1);
-		if(color) {
-			g2.setColor(Color.white);
+		if(showNotation) {
+			g2.drawString(notation.toString(), x1+5, y2-5);
 		}
-		else {
-			g2.setColor(Color.black);
-		}
-		g2.drawString(notation.toString(), x1+5, y2-5);
+		
+	}
+
+	public static boolean isShowNotation() {
+		return showNotation;
+	}
+
+	public static void setShowNotation(boolean showNotation) {
+		GamePiece.showNotation = showNotation;
 	}
 
 	public boolean contains(Point p) {

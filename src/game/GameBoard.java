@@ -661,5 +661,10 @@ public class GameBoard extends JPanel {
 			repaint();				
 		}
 	}
+
+	public void toggleNotations() {
+		GamePiece.setShowNotation(!GamePiece.isShowNotation());
+		repaint();
+	}
 	
 }
