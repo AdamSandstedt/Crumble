@@ -165,7 +165,7 @@ public class GameBoard extends JPanel {
 			if(piece.getBottomLeft().equals(firstSelectionPoint)) p1 = piece;
 			if(piece.getTopRight().equals(secondSelectionPoint)) p2 = piece;
 		}
-		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), "????", gamePieces);
+		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), p1.getLocation(), gamePieces);
 		for(GamePiece piece: gamePieces) {
 			if(newPiece.contains(piece)) {
 				piecesToJoin.add(piece);
@@ -218,7 +218,7 @@ public class GameBoard extends JPanel {
 				}
 				Set<GamePiece> chain = findChain(piece);
 				chain.remove(piece);
-				GamePiece newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), "????", gamePieces);
+				GamePiece newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), piece.getLocation(), gamePieces);
 				gamePieces.add(newPieceBottom);
 				chain.add(newPieceBottom);
 				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), "????", gamePieces);
@@ -245,7 +245,7 @@ public class GameBoard extends JPanel {
 				}
 				Set<GamePiece> chain = findChain(piece);
 				chain.remove(piece);
-				GamePiece newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), "????", gamePieces);
+				GamePiece newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), piece.getLocation(), gamePieces);
 				gamePieces.add(newPieceLeft);
 				chain.add(newPieceLeft);
 				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), "????", gamePieces);
