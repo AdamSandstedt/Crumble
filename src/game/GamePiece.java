@@ -211,12 +211,17 @@ public class GamePiece {
 		return wallNeighbors;
 	}
 
-	public void updateLocationsAbove() {
+	public void updateSurroundingNotations() {
+		int notationUpSize = this.notation.notationUp().notationSize();
+		int notationRightSize = this.notation.notationRight().notationSize();
 		for(GamePiece piece: neighbors) {
-			if(piece.getBottomLeft().getX() == this.bottomLeft.getX() && piece.getBottomLeft().getY() > this.bottomLeft.getY()) {
+			if(piece.getBottomLeft().getX() == this.bottomLeft.getX() && piece.getBottomLeft().getY() > this.bottomLeft.getY() && notationUpSize <= piece.notation.notationSize()) { // up
 				piece.setNotation(this.notation.notationUp());
-				piece.updateLocationsAbove();
-				break;
+				piece.updateSurroundingNotations();
+			}
+			if(piece.getBottomLeft().getY() == this.bottomLeft.getY() && piece.getBottomLeft().getX() > this.bottomLeft.getX() && notationRightSize <= piece.notation.notationSize()) { // right
+				piece.setNotation(this.notation.notationRight());
+				piece.updateSurroundingNotations();
 			}
 		}
 	}

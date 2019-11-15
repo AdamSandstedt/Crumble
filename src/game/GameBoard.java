@@ -200,6 +200,7 @@ public class GameBoard extends JPanel {
 
 	public void split() {
 		Set<GamePiece> piecesToSplit = new HashSet<>();
+		Set<GamePiece> piecesToUpdate = new HashSet<>();
 		swapStartPieces.clear();
 		if(splitDirection) { // horizontal split
 			for(GamePiece piece: gamePieces) {
@@ -221,10 +222,10 @@ public class GameBoard extends JPanel {
 				GamePiece newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), piece.getNotation(), gamePieces);
 				gamePieces.add(newPieceBottom);
 				chain.add(newPieceBottom);
-				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), new Notation(0), gamePieces);
+				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), piece.getNotation().notationUp(), gamePieces);
 				gamePieces.add(newPieceTop);
 				chain.add(newPieceTop);
-				newPieceBottom.updateLocationsAbove();
+				piecesToUpdate.add(newPieceBottom);
 				swapStartPieces.add(newPieceTop);
 				swapStartPieces.add(newPieceBottom);
 			}
@@ -249,12 +250,17 @@ public class GameBoard extends JPanel {
 				GamePiece newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), piece.getNotation(), gamePieces);
 				gamePieces.add(newPieceLeft);
 				chain.add(newPieceLeft);
-				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), new Notation(0), gamePieces);
+				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), piece.getNotation().notationRight(), gamePieces);
 				gamePieces.add(newPieceRight);
 				chain.add(newPieceRight);
+				piecesToUpdate.add(newPieceLeft);
 				swapStartPieces.add(newPieceRight);
 				swapStartPieces.add(newPieceLeft);
 			}
+		}
+		
+		for(GamePiece piece: piecesToUpdate) {
+			piece.updateSurroundingNotations();
 		}
 		
 		showSplitLine = false;

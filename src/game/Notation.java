@@ -51,4 +51,8 @@ public class Notation {
 		return builder.toString();
 	}
 
+	public int notationSize() {
+		return location.size();
+	}
+
 }
