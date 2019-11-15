@@ -91,6 +91,7 @@ public class GameBoard extends JPanel {
 	
 	@Override
 	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
 		for(GamePiece piece: gamePieces) {
 			piece.draw(g);
 		}
