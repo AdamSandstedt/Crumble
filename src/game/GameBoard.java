@@ -186,6 +186,7 @@ public class GameBoard extends JPanel {
 		gamePieces.add(newPiece);
 		chain.add(newPiece);
 		firstSelectionPiece = newPiece;
+		updateNotations();
 		
 		showJoinRect = false;
 		currentAction = "swap";
@@ -259,10 +260,7 @@ public class GameBoard extends JPanel {
 				swapStartPieces.add(newPieceLeft);
 			}
 		}
-		
-		for(GamePiece piece: piecesToUpdate) {
-			piece.updateSurroundingNotations();
-		}
+		updateNotations();
 		
 		showSplitLine = false;
 		currentAction = "swap";
@@ -665,6 +663,33 @@ public class GameBoard extends JPanel {
 	public void toggleNotations() {
 		GamePiece.setShowNotation(!GamePiece.isShowNotation());
 		repaint();
+	}
+	
+	private void updateNotations() {
+		LinkedList<GamePiece> queue = new LinkedList<>();
+		for(GamePiece piece: gamePieces) {
+			if(piece.getBottomLeft().equals(new BoardPoint(0, 0))) queue.add(piece);
+			piece.setNotation(null);
+		}
+		queue.peek().setNotation(new Notation(0));
+		GamePiece currentPiece;
+		while(!queue.isEmpty()) {
+			currentPiece = queue.pop();
+			int notationUpSize = currentPiece.getNotation().notationUp().notationSize();
+			int notationRightSize = currentPiece.getNotation().notationRight().notationSize();
+			for(GamePiece piece: currentPiece.getNeighbors()) {
+				if(piece.getBottomLeft().getX() == currentPiece.getBottomLeft().getX() && piece.getBottomLeft().getY() > currentPiece.getBottomLeft().getY()
+				  && (piece.getNotation() == null || notationUpSize <= piece.getNotation().notationSize())) { // up
+					piece.setNotation(currentPiece.getNotation().notationUp());
+					queue.add(piece);
+				}
+				if(piece.getBottomLeft().getY() == currentPiece.getBottomLeft().getY() && piece.getBottomLeft().getX() > currentPiece.getBottomLeft().getX() 
+				  && (piece.getNotation() == null || notationRightSize <= piece.getNotation().notationSize())) { // right
+					piece.setNotation(currentPiece.getNotation().notationRight());
+					queue.add(piece);
+				}
+			}
+		}
 	}
 	
 }
