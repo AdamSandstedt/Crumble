@@ -23,6 +23,7 @@ public class CrumbleGame extends JFrame {
 	ArrayList<String> moveNotations;
 
 	public CrumbleGame() {
+		moveNotations = new ArrayList<>();
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		
 		menu = new CrumbleMenuBar();
