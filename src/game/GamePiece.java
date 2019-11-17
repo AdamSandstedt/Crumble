@@ -185,6 +185,8 @@ public class GamePiece {
 		}
 		g2.drawRect(x1, y1, x2-x1, y2-y1);
 		if(showNotation) {
+			float fontSize = 20 * (float)(topRight.getX()-bottomLeft.getX());
+			g2.setFont(g2.getFont().deriveFont(fontSize));
 			g2.drawString(notation.toString(), x1+5, y2-5);
 		}
 		
