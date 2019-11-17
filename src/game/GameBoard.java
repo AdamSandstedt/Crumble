@@ -36,12 +36,15 @@ public class GameBoard extends JPanel {
 	private ControlPanel controlPanel;
 	private CrumbleGame crumbleGame;
 	private ButtonListener buttonListener;
+	private String currentMoveNotation;
+	Set<GamePiece> piecesToSplit;
 	
 	GameBoard() {
 		gamePieces = new HashSet<>();
 		swapStartPieces = new HashSet<>();
 		chains = new HashSet<>();
 		buttonListener = new ButtonListener();
+		piecesToSplit = new HashSet<>();
 		
 		setPreferredSize(new Dimension(width+GamePiece.X_OFFSET*2, height+GamePiece.Y_OFFSET*2));
 		addMouseListener(new BoardMouseListener());
@@ -147,6 +150,54 @@ public class GameBoard extends JPanel {
 	}
 
 	public void swap() {
+		if(currentMoveNotation.matches(".(,.)*V[0-9]*")) { //First swap after a vertical split
+			GamePiece originalSplitPiece = null;
+			if(piecesToSplit.size() > 1) {
+				int piecesSplitBelow = 0;
+				for(GamePiece piece: piecesToSplit) {
+					if(firstSelectionPiece.getBottomLeft().getY() > piece.getBottomLeft().getY()) piecesSplitBelow++;
+					else if(firstSelectionPiece.getBottomLeft().getY() == piece.getBottomLeft().getY()) originalSplitPiece = piece;
+				}
+				currentMoveNotation += "-" + (piecesSplitBelow + 1);
+			}
+			else {
+				originalSplitPiece = piecesToSplit.iterator().next();
+			}
+			if(firstSelectionPiece.getBottomLeft().getY() != secondSelectionPiece.getBottomLeft().getY() || piecesToSplit.size() > 1) { // This means it's either a N or S swap or multiple pieces were split
+				if(originalSplitPiece.getBottomLeft().getX() == firstSelectionPiece.getBottomLeft().getX()) currentMoveNotation += "W-";
+				else currentMoveNotation += "E-";
+			}
+		}
+		else if(currentMoveNotation.matches(".(,.)*H[0-9]*")) { //First swap after a horizontal split
+			GamePiece originalSplitPiece = null;
+			if(piecesToSplit.size() > 1) {
+				int piecesSplitLeft = 0;
+				for(GamePiece piece: piecesToSplit) {
+					if(firstSelectionPiece.getBottomLeft().getX() > piece.getBottomLeft().getX()) piecesSplitLeft++;
+					else if(firstSelectionPiece.getBottomLeft().getX() == piece.getBottomLeft().getX()) originalSplitPiece = piece;
+				}
+				currentMoveNotation += "-" + (piecesSplitLeft + 1);
+			}
+			else {
+				originalSplitPiece = piecesToSplit.iterator().next();
+			}
+			if(firstSelectionPiece.getBottomLeft().getX() != secondSelectionPiece.getBottomLeft().getX() || piecesToSplit.size() > 1) { // This means it's either a E or W swap or multiple pieces were split
+				if(originalSplitPiece.getBottomLeft().getY() == firstSelectionPiece.getBottomLeft().getY()) currentMoveNotation += "S-";
+				else currentMoveNotation += "N-";
+			}
+		}
+		if(firstSelectionPiece.getBottomLeft().getX() < secondSelectionPiece.getBottomLeft().getX()) {
+			currentMoveNotation += 'E';
+		}
+		if(firstSelectionPiece.getBottomLeft().getX() > secondSelectionPiece.getBottomLeft().getX()) {
+			currentMoveNotation += 'W';
+		}
+		if(firstSelectionPiece.getBottomLeft().getY() < secondSelectionPiece.getBottomLeft().getY()) {
+			currentMoveNotation += 'N';
+		}
+		if(firstSelectionPiece.getBottomLeft().getY() > secondSelectionPiece.getBottomLeft().getY()) {
+			currentMoveNotation += 'S';
+		}
 		firstSelectionPiece.setColor(!firstSelectionPiece.isColor());
 		updateChain(firstSelectionPiece);
 		secondSelectionPiece.setColor(!secondSelectionPiece.isColor());
@@ -169,6 +220,9 @@ public class GameBoard extends JPanel {
 			if(piece.getBottomLeft().equals(firstSelectionPoint)) p1 = piece;
 			if(piece.getTopRight().equals(secondSelectionPoint)) p2 = piece;
 		}
+		currentMoveNotation = p1.getNotation().toString() + 'J' + p2.getNotation().toString();
+		// Need to fix the join notation ^ to follow the actual game notation
+		// For now, I'm just using the notation of the second piece for the second part of the move notation, but that needs to change
 		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), p1.getNotation(), gamePieces);
 		for(GamePiece piece: gamePieces) {
 			if(newPiece.contains(piece)) {
@@ -204,15 +258,17 @@ public class GameBoard extends JPanel {
 	}
 
 	public void split() {
-		Set<GamePiece> piecesToSplit = new HashSet<>();
+		piecesToSplit.clear();
 		swapStartPieces.clear();
 		if(splitDirection) { // horizontal split
 			for(GamePiece piece: gamePieces) {
 				if(piece.canSplitHorizontal() && firstSelectionPoint.getY() == piece.getHorizontalSplitStart().getY() &&
 				   firstSelectionPoint.getX() <= piece.getBottomLeft().getX() && secondSelectionPoint.getX() >= piece.getTopRight().getX()) {
 					piecesToSplit.add(piece);
+					if(firstSelectionPoint == piece.getHorizontalSplitStart()) currentMoveNotation = piece.getNotation().toString() + "H";
 				}
 			}
+			if(piecesToSplit.size() > 1) currentMoveNotation += piecesToSplit.size();
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
 				for(GamePiece neighbor: piece.getNeighbors()) {
@@ -238,8 +294,10 @@ public class GameBoard extends JPanel {
 				if(piece.canSplitVertical() && firstSelectionPoint.getX() == piece.getVerticalSplitStart().getX() &&
 				   firstSelectionPoint.getY() <= piece.getBottomLeft().getY() && secondSelectionPoint.getY() >= piece.getTopRight().getY()) {
 					piecesToSplit.add(piece);
+					if(firstSelectionPoint == piece.getVerticalSplitStart()) currentMoveNotation = piece.getNotation().toString() + "V";
 				}
 			}
+			if(piecesToSplit.size() > 1) currentMoveNotation += piecesToSplit.size();
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
 				for(GamePiece neighbor: piece.getNeighbors()) {
@@ -552,6 +610,7 @@ public class GameBoard extends JPanel {
 		public void actionPerformed(ActionEvent e) { 
 			currentAction = e.getActionCommand();
 			if(currentAction.equals("end turn")) {
+				crumbleGame.addMove(currentMoveNotation);
 				currentTurn = !currentTurn;
 				currentAction = "split";
 				firstSelectionPiece = null;
