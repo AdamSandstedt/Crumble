@@ -205,7 +205,6 @@ public class GameBoard extends JPanel {
 
 	public void split() {
 		Set<GamePiece> piecesToSplit = new HashSet<>();
-		Set<GamePiece> piecesToUpdate = new HashSet<>();
 		swapStartPieces.clear();
 		if(splitDirection) { // horizontal split
 			for(GamePiece piece: gamePieces) {
@@ -230,7 +229,6 @@ public class GameBoard extends JPanel {
 				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), piece.getNotation().notationUp(), gamePieces);
 				gamePieces.add(newPieceTop);
 				chain.add(newPieceTop);
-				piecesToUpdate.add(newPieceBottom);
 				swapStartPieces.add(newPieceTop);
 				swapStartPieces.add(newPieceBottom);
 			}
@@ -258,7 +256,6 @@ public class GameBoard extends JPanel {
 				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), piece.getNotation().notationRight(), gamePieces);
 				gamePieces.add(newPieceRight);
 				chain.add(newPieceRight);
-				piecesToUpdate.add(newPieceLeft);
 				swapStartPieces.add(newPieceRight);
 				swapStartPieces.add(newPieceLeft);
 			}
