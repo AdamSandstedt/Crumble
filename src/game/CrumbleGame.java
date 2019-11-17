@@ -6,6 +6,7 @@ import java.awt.MenuBar;
 import java.awt.MenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.*;
 
@@ -19,6 +20,7 @@ public class CrumbleGame extends JFrame {
 	GameBoard board;
 	ControlPanel controlPanel;
 	MenuBar menu;
+	ArrayList<String> moveNotations;
 
 	public CrumbleGame() {
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -94,6 +96,11 @@ public class CrumbleGame extends JFrame {
 			}
 		}
 
+	}
+
+	public void addMove(String currentMoveNotation) {
+		moveNotations.add(currentMoveNotation);
+		System.out.println(currentMoveNotation);
 	}
 
 }

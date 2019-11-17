@@ -40,7 +40,9 @@ public class GameBoard extends JPanel {
 	private ButtonListener buttonListener;
 	private Map<BoardPoint, BoardPoint> boardPoints;
 	private Map<BoardPoint, BoardPoint> intersectionUp ,intersectionRight;
-	
+	private String currentMoveNotation;
+	Set<GamePiece> piecesToSplit;
+
 	GameBoard() {
 		gamePieces = new HashSet<>();
 		swapStartPieces = new HashSet<>();
@@ -49,14 +51,15 @@ public class GameBoard extends JPanel {
 		boardPoints = new HashMap<>();
 		intersectionUp = new HashMap<>();
 		intersectionRight = new HashMap<>();
-		
+		piecesToSplit = new HashSet<>();
+
 		setPreferredSize(new Dimension(width+GamePiece.X_OFFSET*2, height+GamePiece.Y_OFFSET*2));
 		addMouseListener(new BoardMouseListener());
 		addMouseMotionListener(new BoardMouseMotionListener());
-		
+
 		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
-	
+
 	public GameBoard(CrumbleGame crumbleGame) {
 		this(); // call constructor with no arguments
 		this.crumbleGame = crumbleGame;
@@ -66,7 +69,7 @@ public class GameBoard extends JPanel {
 			controlPanel.setButtonListener(buttonListener);
 		}
 	}
-	
+
 	public void initialize() {
 		currentTurn = true;	// black goes first
 		currentAction = "split";
@@ -77,7 +80,7 @@ public class GameBoard extends JPanel {
 		showJoinRect = false;
 		splitDirection = false;
 		showStartPoint = true;
-		
+
 		GamePiece newPiece;
 		Notation notation;
 		boolean color = false;
@@ -103,7 +106,7 @@ public class GameBoard extends JPanel {
 			color = !color;
 		}
 	}
-	
+
 	private BoardPoint getPointAt(double x, double y) {
 		return boardPoints.get(new BoardPoint(x, y));
 	}
@@ -116,7 +119,7 @@ public class GameBoard extends JPanel {
 		}
 		this.draw(g);
 	}
-	
+
 	public void draw(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
 		g.drawRect(boardOutline.x, boardOutline.y, boardOutline.width, boardOutline.height);
@@ -165,16 +168,64 @@ public class GameBoard extends JPanel {
 	}
 
 	public void swap() {
+		if(currentMoveNotation.matches(".(,.)*V[0-9]*")) { //First swap after a vertical split
+			GamePiece originalSplitPiece = null;
+			if(piecesToSplit.size() > 1) {
+				int piecesSplitBelow = 0;
+				for(GamePiece piece: piecesToSplit) {
+					if(firstSelectionPiece.getBottomLeft().getY() > piece.getBottomLeft().getY()) piecesSplitBelow++;
+					else if(firstSelectionPiece.getBottomLeft().getY() == piece.getBottomLeft().getY()) originalSplitPiece = piece;
+				}
+				currentMoveNotation += "-" + (piecesSplitBelow + 1);
+			}
+			else {
+				originalSplitPiece = piecesToSplit.iterator().next();
+			}
+			if(firstSelectionPiece.getBottomLeft().getY() != secondSelectionPiece.getBottomLeft().getY() || piecesToSplit.size() > 1) { // This means it's either a N or S swap or multiple pieces were split
+				if(originalSplitPiece.getBottomLeft().getX() == firstSelectionPiece.getBottomLeft().getX()) currentMoveNotation += "W-";
+				else currentMoveNotation += "E-";
+			}
+		}
+		else if(currentMoveNotation.matches(".(,.)*H[0-9]*")) { //First swap after a horizontal split
+			GamePiece originalSplitPiece = null;
+			if(piecesToSplit.size() > 1) {
+				int piecesSplitLeft = 0;
+				for(GamePiece piece: piecesToSplit) {
+					if(firstSelectionPiece.getBottomLeft().getX() > piece.getBottomLeft().getX()) piecesSplitLeft++;
+					else if(firstSelectionPiece.getBottomLeft().getX() == piece.getBottomLeft().getX()) originalSplitPiece = piece;
+				}
+				currentMoveNotation += "-" + (piecesSplitLeft + 1);
+			}
+			else {
+				originalSplitPiece = piecesToSplit.iterator().next();
+			}
+			if(firstSelectionPiece.getBottomLeft().getX() != secondSelectionPiece.getBottomLeft().getX() || piecesToSplit.size() > 1) { // This means it's either a E or W swap or multiple pieces were split
+				if(originalSplitPiece.getBottomLeft().getY() == firstSelectionPiece.getBottomLeft().getY()) currentMoveNotation += "S-";
+				else currentMoveNotation += "N-";
+			}
+		}
+		if(firstSelectionPiece.getBottomLeft().getX() < secondSelectionPiece.getBottomLeft().getX()) {
+			currentMoveNotation += 'E';
+		}
+		if(firstSelectionPiece.getBottomLeft().getX() > secondSelectionPiece.getBottomLeft().getX()) {
+			currentMoveNotation += 'W';
+		}
+		if(firstSelectionPiece.getBottomLeft().getY() < secondSelectionPiece.getBottomLeft().getY()) {
+			currentMoveNotation += 'N';
+		}
+		if(firstSelectionPiece.getBottomLeft().getY() > secondSelectionPiece.getBottomLeft().getY()) {
+			currentMoveNotation += 'S';
+		}
 		firstSelectionPiece.setColor(!firstSelectionPiece.isColor());
 		updateChain(firstSelectionPiece);
 		secondSelectionPiece.setColor(!secondSelectionPiece.isColor());
 		updateChain(secondSelectionPiece);
-		
+
 		firstSelectionPiece = secondSelectionPiece;
 		secondSelectionPiece = null;
 		this.repaint();
-		
-		checkWin(); 
+
+		checkWin();
 		checkCapture();
 		this.repaint();
 	}
@@ -187,6 +238,9 @@ public class GameBoard extends JPanel {
 			if(piece.getBottomLeft().equals(firstSelectionPoint)) p1 = piece;
 			if(piece.getTopRight().equals(secondSelectionPoint)) p2 = piece;
 		}
+		currentMoveNotation = p1.getNotation().toString() + 'J' + p2.getNotation().toString();
+		// Need to fix the join notation ^ to follow the actual game notation
+		// For now, I'm just using the notation of the second piece for the second part of the move notation, but that needs to change
 		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), p1.getNotation(), gamePieces);
 		for(GamePiece piece: gamePieces) {
 			if(newPiece.contains(piece)) {
@@ -208,7 +262,7 @@ public class GameBoard extends JPanel {
 		chain.add(newPiece);
 		firstSelectionPiece = newPiece;
 		updateNotations();
-		
+
 		showJoinRect = false;
 		currentAction = "swap";
 		ArrayList<JButton> buttons = controlPanel.getButtons();
@@ -222,16 +276,17 @@ public class GameBoard extends JPanel {
 	}
 
 	public void split() {
-		Set<GamePiece> piecesToSplit = new HashSet<>();
-		Set<GamePiece> piecesToUpdate = new HashSet<>();
+		piecesToSplit.clear();
 		swapStartPieces.clear();
 		if(splitDirection) { // horizontal split
 			for(GamePiece piece: gamePieces) {
 				if(piece.canSplitHorizontal() && firstSelectionPoint.getY() == piece.getHorizontalSplitStart().getY() &&
 				   firstSelectionPoint.getX() <= piece.getBottomLeft().getX() && secondSelectionPoint.getX() >= piece.getTopRight().getX()) {
 					piecesToSplit.add(piece);
+					if(firstSelectionPoint == piece.getHorizontalSplitStart()) currentMoveNotation = piece.getNotation().toString() + "H";
 				}
 			}
+			if(piecesToSplit.size() > 1) currentMoveNotation += piecesToSplit.size();
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
 				for(GamePiece neighbor: piece.getNeighbors()) {
@@ -248,7 +303,6 @@ public class GameBoard extends JPanel {
 				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), piece.getNotation().notationUp(), gamePieces);
 				gamePieces.add(newPieceTop);
 				chain.add(newPieceTop);
-				piecesToUpdate.add(newPieceBottom);
 				swapStartPieces.add(newPieceTop);
 				swapStartPieces.add(newPieceBottom);
 			}
@@ -258,8 +312,10 @@ public class GameBoard extends JPanel {
 				if(piece.canSplitVertical() && firstSelectionPoint.getX() == piece.getVerticalSplitStart().getX() &&
 				   firstSelectionPoint.getY() <= piece.getBottomLeft().getY() && secondSelectionPoint.getY() >= piece.getTopRight().getY()) {
 					piecesToSplit.add(piece);
+					if(firstSelectionPoint == piece.getVerticalSplitStart()) currentMoveNotation = piece.getNotation().toString() + "V";
 				}
 			}
+			if(piecesToSplit.size() > 1) currentMoveNotation += piecesToSplit.size();
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
 				for(GamePiece neighbor: piece.getNeighbors()) {
@@ -276,13 +332,12 @@ public class GameBoard extends JPanel {
 				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), piece.getNotation().notationRight(), gamePieces);
 				gamePieces.add(newPieceRight);
 				chain.add(newPieceRight);
-				piecesToUpdate.add(newPieceLeft);
 				swapStartPieces.add(newPieceRight);
 				swapStartPieces.add(newPieceLeft);
 			}
 		}
 		updateNotations();
-		
+
 		showSplitLine = false;
 		currentAction = "swap";
 		ArrayList<JButton> buttons = controlPanel.getButtons();
@@ -294,7 +349,7 @@ public class GameBoard extends JPanel {
 		secondSelectionPoint = null;
 		this.repaint();
 	}
-	
+
 	public BoardPoint getNearestPoint(BoardPoint point) {
 		double minSquareDistance = 100;
 		BoardPoint nearestPoint = null;
@@ -354,7 +409,7 @@ public class GameBoard extends JPanel {
 									minSquareDistance = point.distanceSq(end);
 								}
 						}
-							
+
 					}
 				}
 				break;
@@ -415,7 +470,7 @@ public class GameBoard extends JPanel {
 		}
 		return splitIsValid;
 	}
-	
+
 	private boolean validateSwap(GamePiece p1, GamePiece p2) {
 		if(p1.getBottomLeft().getY() == p2.getBottomLeft().getY() && p1.getTopRight().getY() == p2.getTopRight().getY() &&
 		   (p1.getBottomLeft().getX() == p2.getTopRight().getX() || p1.getTopRight().getX() == p2.getBottomLeft().getX() ) ||
@@ -424,11 +479,11 @@ public class GameBoard extends JPanel {
 			if(p1.isColor() != p2.isColor()) return true;
 			else return false;
 		}
-		else {					
+		else {
 			return false;
 		}
 	}
-	
+
 	private Set<GamePiece> findChain(GamePiece piece) {
 		for(Set<GamePiece> chain: chains) {
 			if(chain.contains(piece)) return chain;
@@ -518,7 +573,7 @@ public class GameBoard extends JPanel {
 
 	private void checkCapture() {
 		Set<Set<GamePiece>> isCaptured = new HashSet<>(chains); //Assume that each chain is captured until we figure out that it isn't
-		
+
 		for(Set<GamePiece> chain: chains) {
 			if(isCaptured.contains(chain)) {
 				for(GamePiece piece: chain) {
@@ -549,7 +604,7 @@ public class GameBoard extends JPanel {
 				}
 			}
 		}
-		
+
 		for(Set<GamePiece> capturedChain: isCaptured) {
 			Set<GamePiece> copyChain = new HashSet<>(capturedChain);
 			for(GamePiece piece: copyChain) {
@@ -563,16 +618,17 @@ public class GameBoard extends JPanel {
 	public void setControlPanel(ControlPanel controlPanel) {
 		this.controlPanel = controlPanel;
 	}
-	
+
 	public ButtonListener getButtonListener() {
 		return buttonListener;
 	}
-	
+
 	class ButtonListener implements ActionListener {
 		@Override
-		public void actionPerformed(ActionEvent e) { 
+		public void actionPerformed(ActionEvent e) {
 			currentAction = e.getActionCommand();
 			if(currentAction.equals("end turn")) {
+				crumbleGame.addMove(currentMoveNotation);
 				currentTurn = !currentTurn;
 				currentAction = "split";
 				firstSelectionPiece = null;
@@ -598,7 +654,7 @@ public class GameBoard extends JPanel {
 			}
 		}
 	}
-	
+
 	public class BoardMouseListener implements MouseListener {
 		@Override
 		public void mouseClicked(MouseEvent e) {}
@@ -671,15 +727,15 @@ public class GameBoard extends JPanel {
 		@Override
 		public void mouseExited(MouseEvent e) {}
 	}
-	
+
 	public class BoardMouseMotionListener implements MouseMotionListener {
 		@Override
 		public void mouseDragged(MouseEvent e) {}
-		
+
 		@Override
 		public void mouseMoved(MouseEvent e) {
 			mousePosition = e.getPoint();
-			repaint();				
+			repaint();
 		}
 	}
 
@@ -687,7 +743,7 @@ public class GameBoard extends JPanel {
 		GamePiece.setShowNotation(!GamePiece.isShowNotation());
 		repaint();
 	}
-	
+
 	private void updateNotations() {
 		LinkedList<GamePiece> queue = new LinkedList<>();
 		for(GamePiece piece: gamePieces) {
@@ -706,7 +762,7 @@ public class GameBoard extends JPanel {
 					piece.setNotation(currentPiece.getNotation().notationUp());
 					queue.add(piece);
 				}
-				if(piece.getBottomLeft().getY() == currentPiece.getBottomLeft().getY() && piece.getBottomLeft().getX() > currentPiece.getBottomLeft().getX() 
+				if(piece.getBottomLeft().getY() == currentPiece.getBottomLeft().getY() && piece.getBottomLeft().getX() > currentPiece.getBottomLeft().getX()
 				  && (piece.getNotation() == null || notationRightSize <= piece.getNotation().notationSize())) { // right
 					piece.setNotation(currentPiece.getNotation().notationRight());
 					queue.add(piece);
@@ -714,5 +770,5 @@ public class GameBoard extends JPanel {
 			}
 		}
 	}
-	
+
 }
