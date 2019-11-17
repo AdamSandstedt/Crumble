@@ -19,26 +19,26 @@ public class Notation {
 		this.location = new ArrayList<>(n.location);
 	}
 	
-	public Notation notationRight() {
+	public Notation notationRight(int numPointsBetween) {
 		Notation newNotation = new Notation(this);
 		ArrayList<Integer> newLocation = newNotation.location;
 		if(newLocation.size() % 2 == 0) {
-			newNotation.location.add(1);
+			newNotation.location.add(1 + numPointsBetween);
 		}
 		else {
-			newLocation.set(newLocation.size() - 1, newLocation.get(newLocation.size() - 1) + 1);
+			newLocation.set(newLocation.size() - 1, newLocation.get(newLocation.size() - 1) + 1 + numPointsBetween);
 		}
 		return newNotation;
 	}
 	
-	public Notation notationUp() {
+	public Notation notationUp(int numPointsBetween) {
 		Notation newNotation = new Notation(this);
 		ArrayList<Integer> newLocation = newNotation.location;
 		if(newLocation.size() % 2 == 0) {
-			newLocation.set(newLocation.size() - 1, newLocation.get(newLocation.size() - 1) + 1);
+			newLocation.set(newLocation.size() - 1, newLocation.get(newLocation.size() - 1) + 1 + numPointsBetween);
 		}
 		else {			
-			newNotation.location.add(1);
+			newNotation.location.add(1 + numPointsBetween);
 		}
 		return newNotation;
 	}

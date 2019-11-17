@@ -39,9 +39,10 @@ public class GameBoard extends JPanel {
 	private CrumbleGame crumbleGame;
 	private ButtonListener buttonListener;
 	private Map<BoardPoint, BoardPoint> boardPoints;
-	private Map<BoardPoint, BoardPoint> intersectionUp ,intersectionRight;
 	private String currentMoveNotation;
-	Set<GamePiece> piecesToSplit;
+	private Set<GamePiece> piecesToSplit;
+	private Map<BoardPoint, GamePiece> gamePieceAt;
+	private double smallestWidth, smallestHeight;
 
 	GameBoard() {
 		gamePieces = new HashSet<>();
@@ -49,9 +50,8 @@ public class GameBoard extends JPanel {
 		chains = new HashSet<>();
 		buttonListener = new ButtonListener();
 		boardPoints = new HashMap<>();
-		intersectionUp = new HashMap<>();
-		intersectionRight = new HashMap<>();
 		piecesToSplit = new HashSet<>();
+		gamePieceAt = new HashMap<>();
 
 		setPreferredSize(new Dimension(width+GamePiece.X_OFFSET*2, height+GamePiece.Y_OFFSET*2));
 		addMouseListener(new BoardMouseListener());
@@ -80,12 +80,13 @@ public class GameBoard extends JPanel {
 		showJoinRect = false;
 		splitDirection = false;
 		showStartPoint = true;
+		smallestWidth = 1;
+		smallestHeight = 1;
 
 		GamePiece newPiece;
 		Notation notation;
 		boolean color = false;
 		gamePieces.clear();
-		BoardPoint bottomLeft, topRight, bottomRight, topLeft;
 		for(int x = 0; x <= 6; x++) {
 			for(int y = 0; y <= 6; y++) {
 				BoardPoint newPoint = new BoardPoint(x, y);
@@ -97,6 +98,7 @@ public class GameBoard extends JPanel {
 				if(y == 0) notation = new Notation(x);
 				else notation = new Notation(x, y);
 				newPiece = new GamePiece(color, getPointAt(x, y), getPointAt(x+1,y+1), notation, gamePieces);
+				gamePieceAt.put(getPointAt(x, y), newPiece);
 				Set<GamePiece> newChain = new HashSet<>();
 				newChain.add(newPiece);
 				chains.add(newChain);
@@ -250,6 +252,7 @@ public class GameBoard extends JPanel {
 		Set<GamePiece> chain = findChain(p1);
 		for(GamePiece piece: piecesToJoin) {
 			gamePieces.remove(piece);
+			gamePieceAt.remove(piece.getBottomLeft());
 			for(GamePiece neighbor: piece.getNeighbors()) {
 				neighbor.getNeighbors().remove(piece);
 			}
@@ -259,8 +262,16 @@ public class GameBoard extends JPanel {
 			chain.remove(piece);
 		}
 		gamePieces.add(newPiece);
+		gamePieceAt.put(newPiece.getBottomLeft(), newPiece);
 		chain.add(newPiece);
 		firstSelectionPiece = newPiece;
+		smallestWidth = Double.MAX_VALUE;
+		smallestHeight = Double.MAX_VALUE;
+		for(GamePiece piece: gamePieces) {
+			if(piece.getTopRight().getX() - piece.getBottomLeft().getX() < smallestWidth) smallestWidth = piece.getTopRight().getX() - piece.getBottomLeft().getX();
+			if(piece.getTopRight().getY() - piece.getBottomLeft().getY() < smallestHeight) smallestHeight = piece.getTopRight().getY() - piece.getBottomLeft().getY();
+		}
+		updateBoardPoints();
 		updateNotations();
 
 		showJoinRect = false;
@@ -289,6 +300,7 @@ public class GameBoard extends JPanel {
 			if(piecesToSplit.size() > 1) currentMoveNotation += piecesToSplit.size();
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
+				gamePieceAt.remove(piece.getBottomLeft());
 				for(GamePiece neighbor: piece.getNeighbors()) {
 					neighbor.getNeighbors().remove(piece);
 				}
@@ -299,12 +311,15 @@ public class GameBoard extends JPanel {
 				chain.remove(piece);
 				GamePiece newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), piece.getNotation(), gamePieces);
 				gamePieces.add(newPieceBottom);
+				gamePieceAt.put(newPieceBottom.getBottomLeft(), newPieceBottom);
 				chain.add(newPieceBottom);
-				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), piece.getNotation().notationUp(), gamePieces);
+				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), piece.getNotation().notationUp(0), gamePieces);
 				gamePieces.add(newPieceTop);
+				gamePieceAt.put(newPieceTop.getBottomLeft(), newPieceTop);
 				chain.add(newPieceTop);
 				swapStartPieces.add(newPieceTop);
 				swapStartPieces.add(newPieceBottom);
+				if(newPieceBottom.getTopRight().getY() - newPieceBottom.getBottomLeft().getY() < smallestHeight) smallestHeight = newPieceBottom.getTopRight().getY() - newPieceBottom.getBottomLeft().getY();
 			}
 		}
 		else { // vertical
@@ -318,6 +333,7 @@ public class GameBoard extends JPanel {
 			if(piecesToSplit.size() > 1) currentMoveNotation += piecesToSplit.size();
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
+				gamePieceAt.remove(piece.getBottomLeft());
 				for(GamePiece neighbor: piece.getNeighbors()) {
 					neighbor.getNeighbors().remove(piece);
 				}
@@ -328,14 +344,18 @@ public class GameBoard extends JPanel {
 				chain.remove(piece);
 				GamePiece newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), piece.getNotation(), gamePieces);
 				gamePieces.add(newPieceLeft);
+				gamePieceAt.put(newPieceLeft.getBottomLeft(), newPieceLeft);
 				chain.add(newPieceLeft);
-				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), piece.getNotation().notationRight(), gamePieces);
+				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), piece.getNotation().notationRight(0), gamePieces);
 				gamePieces.add(newPieceRight);
+				gamePieceAt.put(newPieceRight.getBottomLeft(), newPieceRight);
 				chain.add(newPieceRight);
 				swapStartPieces.add(newPieceRight);
 				swapStartPieces.add(newPieceLeft);
+				if(newPieceLeft.getTopRight().getX() - newPieceLeft.getBottomLeft().getX() < smallestHeight) smallestHeight = newPieceLeft.getTopRight().getX() - newPieceLeft.getBottomLeft().getX();
 			}
 		}
+		updateBoardPoints();
 		updateNotations();
 
 		showSplitLine = false;
@@ -348,6 +368,32 @@ public class GameBoard extends JPanel {
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
 		this.repaint();
+	}
+
+	private void updateBoardPoints() {
+		boardPoints.clear();
+		for(GamePiece piece: gamePieces) {
+			boardPoints.put(piece.getBottomLeft(), piece.getBottomLeft());
+			boardPoints.put(piece.getTopRight(), piece.getTopRight());
+		}
+	}
+	
+	private int getNumPointsBetween(GamePiece bottomLeft, GamePiece topRight) {
+		BoardPoint p1 = bottomLeft.getBottomLeft();
+		BoardPoint p2 = topRight.getBottomLeft();
+		int count = 0;
+		double x, y;
+		if(p1.getX() == p2.getX()) { // vertical line
+			x = p1.getX();
+			for(y = p1.getY()+smallestHeight; y < p2.getY(); y += smallestHeight) 
+				if(getPointAt(x, y) != null) count++;
+		}
+		else { // horizontal line
+			y = p1.getY();
+			for(x = p1.getX()+smallestWidth; x < p2.getX(); x += smallestWidth) 
+				if(getPointAt(x, y) != null) count++;
+		}
+		return count;
 	}
 
 	public BoardPoint getNearestPoint(BoardPoint point) {
@@ -754,17 +800,17 @@ public class GameBoard extends JPanel {
 		GamePiece currentPiece;
 		while(!queue.isEmpty()) {
 			currentPiece = queue.pop();
-			int notationUpSize = currentPiece.getNotation().notationUp().notationSize();
-			int notationRightSize = currentPiece.getNotation().notationRight().notationSize();
+			int notationUpSize = currentPiece.getNotation().notationUp(0).notationSize();
+			int notationRightSize = currentPiece.getNotation().notationRight(0).notationSize();
 			for(GamePiece piece: currentPiece.getNeighbors()) {
 				if(piece.getBottomLeft().getX() == currentPiece.getBottomLeft().getX() && piece.getBottomLeft().getY() > currentPiece.getBottomLeft().getY()
 				  && (piece.getNotation() == null || notationUpSize <= piece.getNotation().notationSize())) { // up
-					piece.setNotation(currentPiece.getNotation().notationUp());
+					piece.setNotation(currentPiece.getNotation().notationUp(getNumPointsBetween(currentPiece, piece)));
 					queue.add(piece);
 				}
 				if(piece.getBottomLeft().getY() == currentPiece.getBottomLeft().getY() && piece.getBottomLeft().getX() > currentPiece.getBottomLeft().getX()
 				  && (piece.getNotation() == null || notationRightSize <= piece.getNotation().notationSize())) { // right
-					piece.setNotation(currentPiece.getNotation().notationRight());
+					piece.setNotation(currentPiece.getNotation().notationRight(getNumPointsBetween(currentPiece, piece)));
 					queue.add(piece);
 				}
 			}
