@@ -43,6 +43,11 @@ public class BoardPoint {
 		return this.x == p.getX() && this.y == p.getY();
 	}
 	
+	@Override
+	public int hashCode() { // Not a great hashcode but it's better than the auto-generated hashcode because this one will hash the same points to the same value
+		return Double.hashCode(x) * 37 + Double.hashCode(y) * 89;
+	}
+	
 	public double distanceSq(BoardPoint p) {
 		double dx = p.x - this.x;
 		double dy = p.y - this.y;

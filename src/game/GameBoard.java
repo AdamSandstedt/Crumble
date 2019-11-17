@@ -7,9 +7,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -36,12 +38,17 @@ public class GameBoard extends JPanel {
 	private ControlPanel controlPanel;
 	private CrumbleGame crumbleGame;
 	private ButtonListener buttonListener;
+	private Map<BoardPoint, BoardPoint> boardPoints;
+	private Map<BoardPoint, BoardPoint> intersectionUp ,intersectionRight;
 	
 	GameBoard() {
 		gamePieces = new HashSet<>();
 		swapStartPieces = new HashSet<>();
 		chains = new HashSet<>();
 		buttonListener = new ButtonListener();
+		boardPoints = new HashMap<>();
+		intersectionUp = new HashMap<>();
+		intersectionRight = new HashMap<>();
 		
 		setPreferredSize(new Dimension(width+GamePiece.X_OFFSET*2, height+GamePiece.Y_OFFSET*2));
 		addMouseListener(new BoardMouseListener());
@@ -75,11 +82,18 @@ public class GameBoard extends JPanel {
 		Notation notation;
 		boolean color = false;
 		gamePieces.clear();
+		BoardPoint bottomLeft, topRight, bottomRight, topLeft;
+		for(int x = 0; x <= 6; x++) {
+			for(int y = 0; y <= 6; y++) {
+				BoardPoint newPoint = new BoardPoint(x, y);
+				boardPoints.put(newPoint, newPoint);
+			}
+		}
 		for(int x = 0; x < 6; x++) {
 			for(int y = 0; y < 6; y++) {
 				if(y == 0) notation = new Notation(x);
 				else notation = new Notation(x, y);
-				newPiece = new GamePiece(color, new BoardPoint(x,y), new BoardPoint(x+1,y+1), notation, gamePieces);
+				newPiece = new GamePiece(color, getPointAt(x, y), getPointAt(x+1,y+1), notation, gamePieces);
 				Set<GamePiece> newChain = new HashSet<>();
 				newChain.add(newPiece);
 				chains.add(newChain);
@@ -90,6 +104,10 @@ public class GameBoard extends JPanel {
 		}
 	}
 	
+	private BoardPoint getPointAt(double x, double y) {
+		return boardPoints.get(new BoardPoint(x, y));
+	}
+
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
