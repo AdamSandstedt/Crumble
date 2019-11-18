@@ -240,7 +240,8 @@ public class GameBoard extends JPanel {
 			if(piece.getBottomLeft().equals(firstSelectionPoint)) p1 = piece;
 			if(piece.getTopRight().equals(secondSelectionPoint)) p2 = piece;
 		}
-		currentMoveNotation = p1.getNotation().toString() + 'J' + p2.getNotation().toString();
+		BoardPoint bottomRight = getPointAt(p2.getTopRight().getX(), p1.getBottomLeft().getY());
+		currentMoveNotation = p1.getNotation().toString() + 'J' + (1 + getNumPointsBetween(p1.getBottomLeft(), bottomRight)) + "," + (1 + getNumPointsBetween(bottomRight, p2.getTopRight()));
 		// Need to fix the join notation ^ to follow the actual game notation
 		// For now, I'm just using the notation of the second piece for the second part of the move notation, but that needs to change
 		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), p1.getNotation(), gamePieces);
@@ -381,16 +382,20 @@ public class GameBoard extends JPanel {
 	private int getNumPointsBetween(GamePiece bottomLeft, GamePiece topRight) {
 		BoardPoint p1 = bottomLeft.getBottomLeft();
 		BoardPoint p2 = topRight.getBottomLeft();
+		return getNumPointsBetween(p1, p2);
+	}
+	
+	private int getNumPointsBetween(BoardPoint p1, BoardPoint p2) {
 		int count = 0;
 		double x, y;
 		if(p1.getX() == p2.getX()) { // vertical line
 			x = p1.getX();
-			for(y = p1.getY()+smallestHeight; y < p2.getY(); y += smallestHeight) 
+			for(y = p1.getY()+smallestHeight; y < p2.getY(); y += smallestHeight)
 				if(getPointAt(x, y) != null) count++;
 		}
 		else { // horizontal line
 			y = p1.getY();
-			for(x = p1.getX()+smallestWidth; x < p2.getX(); x += smallestWidth) 
+			for(x = p1.getX()+smallestWidth; x < p2.getX(); x += smallestWidth)
 				if(getPointAt(x, y) != null) count++;
 		}
 		return count;
