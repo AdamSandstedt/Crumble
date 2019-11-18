@@ -181,7 +181,7 @@ public class GameBoard extends JPanel {
 	}
 
 	public void swap() {
-		if(currentMoveNotation.matches(".(,.)*V[0-9]*")) { //First swap after a vertical split
+		if(currentMoveNotation.matches("[0-9]+(,[0-9]+)*V[0-9]*")) { //First swap after a vertical split
 			GamePiece originalSplitPiece = null;
 			if(piecesToSplit.size() > 1) {
 				int piecesSplitBelow = 0;
