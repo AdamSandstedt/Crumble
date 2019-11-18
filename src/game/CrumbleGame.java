@@ -19,11 +19,13 @@ import javax.swing.filechooser.FileNameExtensionFilter;;
  *
  */
 public class CrumbleGame extends JFrame {
-	GameBoard board;
-	ControlPanel controlPanel;
-	MenuBar menu;
-	ArrayList<String> moveNotations;
-	JFileChooser fileChooser;
+	private GameBoard board;
+	private ControlPanel controlPanel;
+	private MenuBar menu;
+	private ArrayList<String> moveNotations;
+	private JFileChooser fileChooser;
+	private int numRows = 0;
+	private int numColumns = 0;
 
 	public CrumbleGame() {
 		moveNotations = new ArrayList<>();
@@ -158,6 +160,14 @@ public class CrumbleGame extends JFrame {
 	            e.printStackTrace();
 	        }
 		}
+	}
+	
+	public int getNumRows() {
+		return numRows;
+	}
+
+	public int getNumColumns() {
+		return numColumns;
 	}
 
 }

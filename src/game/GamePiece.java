@@ -19,33 +19,35 @@ public class GamePiece {
 	private Set<Character> wallNeighbors;
 	private Set<GamePiece> surrounding;
 	private static boolean showNotation = false;
+	private GameBoard board;
 	
 	public static final int X_OFFSET = 20;
 	public static final int Y_OFFSET = 20;
 	
-	public GamePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, Notation notation, Set<GamePiece> gamePieces) {
+	public GamePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, Notation notation, Set<GamePiece> gamePieces, GameBoard board) {
 		this.color = color;
 		this.bottomLeft = bottomLeft;
 		this.topRight = topRight;
 		this.notation = notation;
+		this.board = board;
 		double width = topRight.getX()-bottomLeft.getX();
 		double height = topRight.getY()-bottomLeft.getY();
 		if(width == height) {
 			shape = "square";
-			horizontalSplitStart = new BoardPoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2);
-			verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY());
-			horizontalSplitEnd = new BoardPoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2);
-			verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY());
+			horizontalSplitStart = new BoardPoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2, board);
+			verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY(), board);
+			horizontalSplitEnd = new BoardPoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2, board);
+			verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY(), board);
 		}
 		else if(height == 2*width) {
 			shape = "tall";
-			horizontalSplitStart = new BoardPoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2);
-			horizontalSplitEnd = new BoardPoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2);
+			horizontalSplitStart = new BoardPoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2, board);
+			horizontalSplitEnd = new BoardPoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2, board);
 		}
 		else {
 			shape = "wide";
-			verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY());
-			verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY());
+			verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY(), board);
+			verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY(), board);
 		}
 		neighbors = new HashSet<GamePiece>();
 		for(GamePiece piece: gamePieces) {
@@ -71,8 +73,8 @@ public class GamePiece {
 		wallNeighbors = new HashSet<>();
 		if(bottomLeft.getX() == 0) wallNeighbors.add('L'); // left
 		if(bottomLeft.getY() == 0) wallNeighbors.add('B'); // bottom
-		if(topRight.getX() == 6) wallNeighbors.add('R'); // right
-		if(topRight.getY() == 6) wallNeighbors.add('T'); // top
+		if(topRight.getX() == board.getNumColumns()) wallNeighbors.add('R'); // right
+		if(topRight.getY() == board.getNumRows()) wallNeighbors.add('T'); // top
 	}
 
 	public Set<GamePiece> getSurrounding() {
@@ -166,10 +168,10 @@ public class GamePiece {
 
 	public void draw(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
-		int x1 = (int)(X_OFFSET + 100*bottomLeft.getX());
-		int x2 = (int)(X_OFFSET + 100*topRight.getX());
-		int y1 = (int)(Y_OFFSET + 600 - 100*topRight.getY());
-		int y2 = (int)(Y_OFFSET + 600 - 100*bottomLeft.getY());
+		int x1 = (int)(X_OFFSET + board.getxConversion()*bottomLeft.getX());
+		int x2 = (int)(X_OFFSET + board.getxConversion()*topRight.getX());
+		int y1 = (int)(Y_OFFSET + GameBoard.HEIGHT - board.getyConversion()*topRight.getY());
+		int y2 = (int)(Y_OFFSET + GameBoard.HEIGHT - board.getyConversion()*bottomLeft.getY());
 		if(color) {
 			g2.setColor(Color.black);
 		}
@@ -201,7 +203,7 @@ public class GamePiece {
 	}
 
 	public boolean contains(Point p) {
-		BoardPoint bp = new BoardPoint(p);
+		BoardPoint bp = new BoardPoint(p, board);
 		return contains(bp);
 	}
 

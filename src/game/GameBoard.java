@@ -33,8 +33,10 @@ public class GameBoard extends JPanel {
 	private boolean showStartPoint;
 	private Set<GamePiece> swapStartPieces;
 	private Set<Set<GamePiece>> chains;
-	private int width = 600;
-	private int height = 600;
+	public static final int WIDTH = 800;
+	public static final int HEIGHT = 800;
+	private int numRows = 0;
+	private int numColumns = 0;
 	private ControlPanel controlPanel;
 	private CrumbleGame crumbleGame;
 	private ButtonListener buttonListener;
@@ -43,6 +45,8 @@ public class GameBoard extends JPanel {
 	private Set<GamePiece> piecesToSplit;
 	private Map<BoardPoint, GamePiece> gamePieceAt;
 	private double smallestWidth, smallestHeight;
+	private double xConversion;
+	private double yConversion;
 
 	GameBoard() {
 		gamePieces = new HashSet<>();
@@ -53,11 +57,19 @@ public class GameBoard extends JPanel {
 		piecesToSplit = new HashSet<>();
 		gamePieceAt = new HashMap<>();
 
-		setPreferredSize(new Dimension(width+GamePiece.X_OFFSET*2, height+GamePiece.Y_OFFSET*2));
-		addMouseListener(new BoardMouseListener());
+		setPreferredSize(new Dimension(WIDTH+GamePiece.X_OFFSET*2, HEIGHT+GamePiece.Y_OFFSET*2));
+		addMouseListener(new BoardMouseListener(this));
 		addMouseMotionListener(new BoardMouseMotionListener());
 
 		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
+	}
+
+	public double getxConversion() {
+		return xConversion;
+	}
+
+	public double getyConversion() {
+		return yConversion;
 	}
 
 	public GameBoard(CrumbleGame crumbleGame) {
@@ -73,7 +85,7 @@ public class GameBoard extends JPanel {
 	public void initialize() {
 		currentTurn = true;	// black goes first
 		currentAction = "split";
-		boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, width, height);
+		boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, WIDTH, HEIGHT);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
 		showSplitLine = false;
@@ -82,22 +94,26 @@ public class GameBoard extends JPanel {
 		showStartPoint = true;
 		smallestWidth = 1;
 		smallestHeight = 1;
+		if(numRows == 0) numRows = 6;
+		if(numColumns == 0) numColumns = 6;
+		xConversion = (double)WIDTH / numColumns;
+		yConversion = (double)HEIGHT / numRows;
 
 		GamePiece newPiece;
 		Notation notation;
-		boolean color = false;
+		boolean color = numRows % 2 == 1;
 		gamePieces.clear();
-		for(int x = 0; x <= 6; x++) {
-			for(int y = 0; y <= 6; y++) {
-				BoardPoint newPoint = new BoardPoint(x, y);
+		for(int x = 0; x <= numColumns; x++) {
+			for(int y = 0; y <= numRows; y++) {
+				BoardPoint newPoint = new BoardPoint(x, y, this);
 				boardPoints.put(newPoint, newPoint);
 			}
 		}
-		for(int x = 0; x < 6; x++) {
-			for(int y = 0; y < 6; y++) {
+		for(int x = 0; x < numColumns; x++) {
+			for(int y = 0; y < numRows; y++) {
 				if(y == 0) notation = new Notation(x);
 				else notation = new Notation(x, y);
-				newPiece = new GamePiece(color, getPointAt(x, y), getPointAt(x+1,y+1), notation, gamePieces);
+				newPiece = new GamePiece(color, getPointAt(x, y), getPointAt(x+1,y+1), notation, gamePieces, this);
 				gamePieceAt.put(getPointAt(x, y), newPiece);
 				Set<GamePiece> newChain = new HashSet<>();
 				newChain.add(newPiece);
@@ -105,12 +121,12 @@ public class GameBoard extends JPanel {
 				color = !color;
 				gamePieces.add(newPiece);
 			}
-			color = !color;
+			if(numRows % 2 == 0) color = !color;
 		}
 	}
 
 	private BoardPoint getPointAt(double x, double y) {
-		return boardPoints.get(new BoardPoint(x, y));
+		return boardPoints.get(new BoardPoint(x, y, this));
 	}
 
 	@Override
@@ -126,7 +142,7 @@ public class GameBoard extends JPanel {
 		Graphics2D g2 = (Graphics2D) g;
 		g.drawRect(boardOutline.x, boardOutline.y, boardOutline.width, boardOutline.height);
 		if(showStartPoint) {
-			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition));
+			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition, this));
 			if(p != null) {
 				g2.setColor(Color.red);
 				g2.fillRect(p.toPoint().x, p.toPoint().y, 5, 5);
@@ -135,7 +151,7 @@ public class GameBoard extends JPanel {
 		else if(showSplitLine) {
 			int x1 = firstSelectionPoint.toPoint().x;
 			int y1 = firstSelectionPoint.toPoint().y;
-			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition));
+			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition, this));
 			int x2 = p.toPoint().x;
 			int y2 = p.toPoint().y;
 			g2.setColor(Color.red);
@@ -143,7 +159,7 @@ public class GameBoard extends JPanel {
 			g2.drawLine(x1, y1, x2, y2);
 		}
 		else if(showJoinRect) {
-			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition));
+			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition, this));
 			if(p != null) {
 				int x1 = firstSelectionPoint.toPoint().x;
 				int y1 = p.toPoint().y;
@@ -242,7 +258,7 @@ public class GameBoard extends JPanel {
 		}
 		BoardPoint bottomRight = getPointAt(p2.getTopRight().getX(), p1.getBottomLeft().getY());
 		currentMoveNotation = p1.getNotation().toString() + 'J' + (1 + getNumPointsBetween(p1.getBottomLeft(), bottomRight)) + "," + (1 + getNumPointsBetween(bottomRight, p2.getTopRight()));
-		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), p1.getNotation(), gamePieces);
+		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), p1.getNotation(), gamePieces, this);
 		for(GamePiece piece: gamePieces) {
 			if(newPiece.contains(piece)) {
 				piecesToJoin.add(piece);
@@ -308,11 +324,11 @@ public class GameBoard extends JPanel {
 				}
 				Set<GamePiece> chain = findChain(piece);
 				chain.remove(piece);
-				GamePiece newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), piece.getNotation(), gamePieces);
+				GamePiece newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), piece.getNotation(), gamePieces, this);
 				gamePieces.add(newPieceBottom);
 				gamePieceAt.put(newPieceBottom.getBottomLeft(), newPieceBottom);
 				chain.add(newPieceBottom);
-				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), piece.getNotation().notationUp(0), gamePieces);
+				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), piece.getNotation().notationUp(0), gamePieces, this);
 				gamePieces.add(newPieceTop);
 				gamePieceAt.put(newPieceTop.getBottomLeft(), newPieceTop);
 				chain.add(newPieceTop);
@@ -341,11 +357,11 @@ public class GameBoard extends JPanel {
 				}
 				Set<GamePiece> chain = findChain(piece);
 				chain.remove(piece);
-				GamePiece newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), piece.getNotation(), gamePieces);
+				GamePiece newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), piece.getNotation(), gamePieces, this);
 				gamePieces.add(newPieceLeft);
 				gamePieceAt.put(newPieceLeft.getBottomLeft(), newPieceLeft);
 				chain.add(newPieceLeft);
-				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), piece.getNotation().notationRight(0), gamePieces);
+				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), piece.getNotation().notationRight(0), gamePieces, this);
 				gamePieces.add(newPieceRight);
 				gamePieceAt.put(newPieceRight.getBottomLeft(), newPieceRight);
 				chain.add(newPieceRight);
@@ -705,6 +721,12 @@ public class GameBoard extends JPanel {
 	}
 
 	public class BoardMouseListener implements MouseListener {
+		private GameBoard board;
+		
+		public BoardMouseListener(GameBoard board) {
+			this.board = board;
+		}
+		
 		@Override
 		public void mouseClicked(MouseEvent e) {}
 
@@ -712,7 +734,7 @@ public class GameBoard extends JPanel {
 		public void mousePressed(MouseEvent e) {
 			Point p = e.getPoint();
 			if(boardOutline.contains(p)) {
-				BoardPoint click = new BoardPoint(p);
+				BoardPoint click = new BoardPoint(p, board);
 				if(currentAction.equals("split") || currentAction.equals("join")) {
 					if(firstSelectionPoint == null) {
 						firstSelectionPoint = getNearestPoint(click);
@@ -796,7 +818,7 @@ public class GameBoard extends JPanel {
 	private void updateNotations() {
 		LinkedList<GamePiece> queue = new LinkedList<>();
 		for(GamePiece piece: gamePieces) {
-			if(piece.getBottomLeft().equals(new BoardPoint(0, 0))) queue.add(piece);
+			if(piece.getBottomLeft().equals(new BoardPoint(0, 0, this))) queue.add(piece);
 			piece.setNotation(null);
 		}
 		queue.peek().setNotation(new Notation(0));
@@ -818,6 +840,14 @@ public class GameBoard extends JPanel {
 				}
 			}
 		}
+	}
+
+	public int getNumRows() {
+		return numRows;
+	}
+
+	public int getNumColumns() {
+		return numColumns;
 	}
 
 }

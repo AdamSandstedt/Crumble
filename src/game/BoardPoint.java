@@ -5,16 +5,19 @@ import java.awt.Point;
 public class BoardPoint {
 	private double x;
 	private double y;
+	private GameBoard board;
 	
-	BoardPoint(double x, double y) {
+	BoardPoint(double x, double y, GameBoard board) {
 		this.x = x;
 		this.y = y;
+		this.board = board;
 	}
 	
-	BoardPoint(Point p) {
+	BoardPoint(Point p, GameBoard board) {
+		this.board = board;
 		if(p != null) {
-			this.x = ((double)p.x - GamePiece.X_OFFSET)/100;
-			this.y = ((double)GamePiece.Y_OFFSET + 600 - p.y)/100;
+			this.x = ((double)p.x - GamePiece.X_OFFSET)/board.getxConversion();
+			this.y = ((double)GamePiece.Y_OFFSET + GameBoard.HEIGHT - p.y)/board.getxConversion();
 		}
 		else {
 			this.x = 0;
@@ -55,7 +58,7 @@ public class BoardPoint {
 	}
 	
 	public Point toPoint() {
-		return new Point((int)(GamePiece.X_OFFSET+100*x), (int)(600+GamePiece.Y_OFFSET-100*y));
+		return new Point((int)(GamePiece.X_OFFSET+board.getxConversion()*x), (int)(GameBoard.HEIGHT+GamePiece.Y_OFFSET-board.getyConversion()*y));
 	}
 	
 }
