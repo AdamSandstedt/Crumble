@@ -242,8 +242,6 @@ public class GameBoard extends JPanel {
 		}
 		BoardPoint bottomRight = getPointAt(p2.getTopRight().getX(), p1.getBottomLeft().getY());
 		currentMoveNotation = p1.getNotation().toString() + 'J' + (1 + getNumPointsBetween(p1.getBottomLeft(), bottomRight)) + "," + (1 + getNumPointsBetween(bottomRight, p2.getTopRight()));
-		// Need to fix the join notation ^ to follow the actual game notation
-		// For now, I'm just using the notation of the second piece for the second part of the move notation, but that needs to change
 		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), p1.getNotation(), gamePieces);
 		for(GamePiece piece: gamePieces) {
 			if(newPiece.contains(piece)) {
@@ -353,7 +351,7 @@ public class GameBoard extends JPanel {
 				chain.add(newPieceRight);
 				swapStartPieces.add(newPieceRight);
 				swapStartPieces.add(newPieceLeft);
-				if(newPieceLeft.getTopRight().getX() - newPieceLeft.getBottomLeft().getX() < smallestHeight) smallestHeight = newPieceLeft.getTopRight().getX() - newPieceLeft.getBottomLeft().getX();
+				if(newPieceLeft.getTopRight().getX() - newPieceLeft.getBottomLeft().getX() < smallestWidth) smallestWidth = newPieceLeft.getTopRight().getX() - newPieceLeft.getBottomLeft().getX();
 			}
 		}
 		updateBoardPoints();
