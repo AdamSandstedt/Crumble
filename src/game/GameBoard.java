@@ -61,21 +61,16 @@ public class GameBoard extends JPanel {
 		addMouseListener(new BoardMouseListener(this));
 		addMouseMotionListener(new BoardMouseMotionListener());
 
-		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
-	}
-
-	public double getxConversion() {
-		return xConversion;
-	}
-
-	public double getyConversion() {
-		return yConversion;
+//		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
 
 	public GameBoard(CrumbleGame crumbleGame) {
 		this(); // call constructor with no arguments
 		this.crumbleGame = crumbleGame;
 		this.controlPanel = crumbleGame.getControlPanel();
+		if(crumbleGame.getNumRows() != 0) numRows = crumbleGame.getNumRows();
+		if(crumbleGame.getNumColumns() != 0) numColumns = crumbleGame.getNumColumns();
+		this.initialize();
 		if(controlPanel != null) {
 			controlPanel.setGameBoard(this);
 			controlPanel.setButtonListener(buttonListener);
@@ -848,6 +843,14 @@ public class GameBoard extends JPanel {
 
 	public int getNumColumns() {
 		return numColumns;
+	}
+
+	public double getxConversion() {
+		return xConversion;
+	}
+
+	public double getyConversion() {
+		return yConversion;
 	}
 
 }

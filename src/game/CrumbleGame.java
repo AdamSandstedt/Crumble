@@ -1,6 +1,7 @@
 package game;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.Menu;
 import java.awt.MenuBar;
 import java.awt.MenuItem;
@@ -12,7 +13,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * @author Adam Sandstedt
@@ -85,12 +88,16 @@ public class CrumbleGame extends JFrame {
 	public class CrumbleMenuBar extends MenuBar {
 		MenuBarListener menuBarListener;
 		Menu file;
+		Menu edit;
 		Menu view;
 		
 		public CrumbleMenuBar() {
 			menuBarListener = new MenuBarListener();
 			file = createFileMenu();
 			add(file);
+			
+			edit = createEditMenu();
+			add(edit);
 			
 			view = createViewMenu();
 			add(view);
@@ -105,6 +112,17 @@ public class CrumbleGame extends JFrame {
 			menu.add(item);
 			
 			item = new MenuItem("Load");
+			menu.add(item);
+			
+			return menu;
+		}
+		
+		private Menu createEditMenu() {
+			Menu menu = new Menu("Edit");
+			
+			MenuItem item = new MenuItem("Board Size");
+			item.setActionCommand("edit_board_size");
+			item.addActionListener(menuBarListener);
 			menu.add(item);
 			
 			return menu;
@@ -132,6 +150,9 @@ public class CrumbleGame extends JFrame {
 			}
 			else if(action.equals("save")) {
 				saveFile();
+			}
+			else if(action.equals("edit_board_size")) {
+				editBoardSize();
 			}
 		}
 
@@ -168,6 +189,64 @@ public class CrumbleGame extends JFrame {
 
 	public int getNumColumns() {
 		return numColumns;
+	}
+	
+	public void editBoardSize() {
+		SizeDialog dialog = new SizeDialog(board, this);
+		dialog.setVisible(true);
+	}
+	
+	public void setNumRows(int numRows) {
+		this.numRows = numRows;
+		setGameBoard(new GameBoard(this));
+	}
+
+	public void setNumColumns(int numColumns) {
+		this.numColumns = numColumns;
+		setGameBoard(new GameBoard(this));
+	}
+	
+	private void setGameBoard(GameBoard gameBoard) {
+		moveNotations.clear();
+		remove(board);
+		board = gameBoard;
+		add(board);
+		controlPanel.setGameBoard(board);
+		this.revalidate();
+	}
+
+	public class SizeDialog extends JDialog {
+		private GameBoard board;
+		private CrumbleGame game;
+		private JSpinner columnSpinner, rowSpinner;
+
+		public SizeDialog(GameBoard board, CrumbleGame game) {
+			this.board = board;
+			this.game = game;
+			
+			setLayout(new GridLayout(1,2));
+			columnSpinner = new JSpinner(new SpinnerNumberModel(6, 2, 16, 1));
+			columnSpinner.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					game.setNumColumns((int)((JSpinner)e.getSource()).getValue());
+					game.setNumColumns((int)((JSpinner)e.getSource()).getValue());
+					rowSpinner.setValue((int)((JSpinner)e.getSource()).getValue());
+				}
+			});
+			add(columnSpinner);
+			
+			rowSpinner = new JSpinner(new SpinnerNumberModel(6, 2, 16, 1));
+			rowSpinner.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					game.setNumRows((int)((JSpinner)e.getSource()).getValue());
+				}
+			});
+			add(rowSpinner);
+			this.setSize(100, 100);
+		}
+
 	}
 
 }

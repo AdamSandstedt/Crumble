@@ -75,10 +75,19 @@ public class ControlPanel extends JPanel {
 
 	public void setGameBoard(GameBoard gameBoard) {
 		this.gameBoard = gameBoard;
+		gameBoard.setControlPanel(this);
+		setButtonListener(gameBoard.getButtonListener());
+		
 	}
 
 	public void setButtonListener(ButtonListener buttonListener) {
+		for(JButton button: buttons) {
+			button.removeActionListener(this.buttonListener);
+		}
 		this.buttonListener = buttonListener;
+		for(JButton button: buttons) {
+			button.addActionListener(buttonListener);
+		}
 	}
 	
 	public class TurnTextPanel extends JPanel {
