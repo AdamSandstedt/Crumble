@@ -17,7 +17,7 @@ public class BoardPoint {
 		this.board = board;
 		if(p != null) {
 			this.x = ((double)p.x - GamePiece.X_OFFSET)/board.getxConversion();
-			this.y = ((double)GamePiece.Y_OFFSET + GameBoard.HEIGHT - p.y)/board.getxConversion();
+			this.y = ((double)GamePiece.Y_OFFSET + board.getBoardHeight() - p.y)/board.getyConversion();
 		}
 		else {
 			this.x = 0;
@@ -58,7 +58,7 @@ public class BoardPoint {
 	}
 	
 	public Point toPoint() {
-		return new Point((int)(GamePiece.X_OFFSET+board.getxConversion()*x), (int)(GameBoard.HEIGHT+GamePiece.Y_OFFSET-board.getyConversion()*y));
+		return new Point((int)(GamePiece.X_OFFSET+board.getxConversion()*x), (int)(board.getBoardHeight()+GamePiece.Y_OFFSET-board.getyConversion()*y));
 	}
 	
 }

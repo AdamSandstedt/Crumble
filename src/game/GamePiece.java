@@ -170,8 +170,8 @@ public class GamePiece {
 		Graphics2D g2 = (Graphics2D) g;
 		int x1 = (int)(X_OFFSET + board.getxConversion()*bottomLeft.getX());
 		int x2 = (int)(X_OFFSET + board.getxConversion()*topRight.getX());
-		int y1 = (int)(Y_OFFSET + GameBoard.HEIGHT - board.getyConversion()*topRight.getY());
-		int y2 = (int)(Y_OFFSET + GameBoard.HEIGHT - board.getyConversion()*bottomLeft.getY());
+		int y1 = (int)(Y_OFFSET + board.getBoardHeight() - board.getyConversion()*topRight.getY());
+		int y2 = (int)(Y_OFFSET + board.getBoardHeight() - board.getyConversion()*bottomLeft.getY());
 		if(color) {
 			g2.setColor(Color.black);
 		}

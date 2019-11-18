@@ -3,6 +3,8 @@ package game;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -33,8 +35,8 @@ public class GameBoard extends JPanel {
 	private boolean showStartPoint;
 	private Set<GamePiece> swapStartPieces;
 	private Set<Set<GamePiece>> chains;
-	public static final int WIDTH = 800;
-	public static final int HEIGHT = 800;
+	public int boardWidth = 800;
+	public int boardHeight = 800;
 	private int numRows = 0;
 	private int numColumns = 0;
 	private ControlPanel controlPanel;
@@ -57,9 +59,22 @@ public class GameBoard extends JPanel {
 		piecesToSplit = new HashSet<>();
 		gamePieceAt = new HashMap<>();
 
-		setPreferredSize(new Dimension(WIDTH+GamePiece.X_OFFSET*2, HEIGHT+GamePiece.Y_OFFSET*2));
+		setPreferredSize(new Dimension(boardWidth+GamePiece.X_OFFSET*2, boardHeight+GamePiece.Y_OFFSET*2));
 		addMouseListener(new BoardMouseListener(this));
 		addMouseMotionListener(new BoardMouseMotionListener());
+		
+		addComponentListener(new ComponentAdapter() {
+			@Override
+		    public void componentResized(ComponentEvent e) {
+				GameBoard board = (GameBoard)e.getSource();
+		        board.setBoardWidth(board.getBounds().width - GamePiece.X_OFFSET*2);
+		        board.setBoardHeight(board.getBounds().height - GamePiece.Y_OFFSET*2);
+//		        System.out.println(boardWidth + ", " + boardHeight);
+		        xConversion = (double)boardWidth / numColumns;
+				yConversion = (double)boardHeight / numRows;
+		        board.boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, boardWidth, boardHeight);
+		    }
+		});
 
 //		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
@@ -80,7 +95,7 @@ public class GameBoard extends JPanel {
 	public void initialize() {
 		currentTurn = true;	// black goes first
 		currentAction = "split";
-		boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, WIDTH, HEIGHT);
+		boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, boardWidth, boardHeight);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
 		showSplitLine = false;
@@ -91,8 +106,8 @@ public class GameBoard extends JPanel {
 		smallestHeight = 1;
 		if(numRows == 0) numRows = 6;
 		if(numColumns == 0) numColumns = 6;
-		xConversion = (double)WIDTH / numColumns;
-		yConversion = (double)HEIGHT / numRows;
+		xConversion = (double)boardWidth / numColumns;
+		yConversion = (double)boardHeight / numRows;
 
 		GamePiece newPiece;
 		Notation notation;
@@ -118,6 +133,22 @@ public class GameBoard extends JPanel {
 			}
 			if(numRows % 2 == 0) color = !color;
 		}
+	}
+
+	public int getBoardWidth() {
+		return boardWidth;
+	}
+
+	public void setBoardWidth(int width) {
+		this.boardWidth = width;
+	}
+
+	public int getBoardHeight() {
+		return boardHeight;
+	}
+
+	public void setBoardHeight(int height) {
+		this.boardHeight = height;
 	}
 
 	private BoardPoint getPointAt(double x, double y) {
