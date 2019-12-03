@@ -35,8 +35,8 @@ public class GameBoard extends JPanel {
 	private boolean showStartPoint;
 	private Set<GamePiece> swapStartPieces;
 	private Set<Set<GamePiece>> chains;
-	public int boardWidth = 800;
-	public int boardHeight = 800;
+	private int boardWidth = 800;
+	private int boardHeight = 800;
 	private int numRows = 0;
 	private int numColumns = 0;
 	private ControlPanel controlPanel;
@@ -69,14 +69,12 @@ public class GameBoard extends JPanel {
 				GameBoard board = (GameBoard)e.getSource();
 		        board.setBoardWidth(board.getBounds().width - GamePiece.X_OFFSET*2);
 		        board.setBoardHeight(board.getBounds().height - GamePiece.Y_OFFSET*2);
-//		        System.out.println(boardWidth + ", " + boardHeight);
 		        xConversion = (double)boardWidth / numColumns;
 				yConversion = (double)boardHeight / numRows;
 		        board.boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, boardWidth, boardHeight);
 		    }
 		});
 
-//		this.initialize();  // Not sure if this is good practice or not, maybe I should make the user call it
 	}
 
 	public GameBoard(CrumbleGame crumbleGame) {
