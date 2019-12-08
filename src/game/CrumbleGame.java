@@ -66,8 +66,8 @@ public class CrumbleGame extends JFrame {
 		controlPanel = new ControlPanel(this);
 		add(controlPanel, BorderLayout.EAST);
 		
-		setVisible(true);
 		this.pack();
+		setVisible(true);
 	}
 
 	public static void main(String[] args) {
