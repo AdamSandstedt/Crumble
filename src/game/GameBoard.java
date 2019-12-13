@@ -882,4 +882,61 @@ public class GameBoard extends JPanel {
 		return yConversion;
 	}
 
+	public void doMove(String moveNotation) {
+		if(moveNotation.matches("[0-9]+(,[0-9]+)*V.*")) { // vertical split
+			String startPieceNotation = moveNotation.substring(0, moveNotation.indexOf('V')); // The notation of the first piece split
+			GamePiece startPiece = getPieceWithNotation(startPieceNotation);
+			firstSelectionPoint = startPiece.getVerticalSplitStart();
+			if(moveNotation.matches("[0-9]+(,[0-9]+)*V[0-9].*")) { // The split was through multiple pieces
+				int numberOfSplits = Integer.parseInt(moveNotation.split("[0-9]+(,[0-9]+)*V")[1].split("-")[0]);
+				secondSelectionPoint = getSplitPointAbove(firstSelectionPoint, numberOfSplits);
+			}
+			else { // Only split one piece
+				secondSelectionPoint = startPiece.getVerticalSplitEnd();
+			}
+			split();
+		}
+		else if(moveNotation.matches("[0-9]+(,[0-9]+)*H.*")) { // horizontal split
+			String startPieceNotation = moveNotation.substring(0, moveNotation.indexOf('H')); // The notation of the first piece split
+			GamePiece startPiece = getPieceWithNotation(startPieceNotation);
+			firstSelectionPoint = startPiece.getHorizontalSplitStart();
+			if(moveNotation.matches("[0-9]+(,[0-9]+)*H[0-9].*")) { // The split was through multiple pieces
+				int numberOfSplits = Integer.parseInt(moveNotation.split("[0-9]+(,[0-9]+)*H")[1].split("-")[0]);
+				secondSelectionPoint = getSplitPointRight(firstSelectionPoint, numberOfSplits);
+			}
+			else { // Only split one piece
+				secondSelectionPoint = startPiece.getHorizontalSplitEnd();
+			}
+			split();
+		}
+		else if(moveNotation.matches("[0-9]+(,[0-9]+)*J.*")) { // join
+			String startPieceNotation = moveNotation.substring(0, moveNotation.indexOf('J')); // The notation of the first piece split
+			GamePiece startPiece = getPieceWithNotation(startPieceNotation);
+			firstSelectionPoint = startPiece.getBottomLeft();
+			String endJoinNotation = moveNotation.split("[0-9]+(,[0-9]+)*J")[1].split("[NESW]")[0];
+			secondSelectionPoint = getEndJoinPoint(firstSelectionPoint, endJoinNotation);
+			join();
+		}
+	}
+
+	private BoardPoint getEndJoinPoint(BoardPoint firstPoint, String notation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private BoardPoint getSplitPointRight(BoardPoint firstSelectionPoint2, int numberOfSplits) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private BoardPoint getSplitPointAbove(BoardPoint firstPoint, int numberOfSplits) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private GamePiece getPieceWithNotation(String startPieceNotation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

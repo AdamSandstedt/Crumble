@@ -196,13 +196,13 @@ public class CrumbleGame extends JFrame {
 	            }
 	            BufferedReader br = new BufferedReader(new FileReader(file));
 	            
-	            moveNotations.clear();
+	            ArrayList<String> newNotations = new ArrayList<>();
 	            String line = br.readLine();
 	            while(line != null) {
-	            	moveNotations.add(line);
+	            	newNotations.add(line);
 	            	line = br.readLine();
 	            }
-	            loadGameFromNotations(moveNotations);
+	            loadGameFromNotations(newNotations);
 	            br.close();
 	        } catch (IOException e) {
 	            e.printStackTrace();
@@ -210,12 +210,17 @@ public class CrumbleGame extends JFrame {
 		}
 	}
 	
-	private void loadGameFromNotations(ArrayList<String> moveNotations) {
+	private void loadGameFromNotations(ArrayList<String> notations) {
 		this.remove(board);
 		board  = new GameBoard(this);
 		add(board, BorderLayout.CENTER);
 		controlPanel.reset();
 		pack();
+		
+        moveNotations.clear();
+		for(int i = 0; i < notations.size(); i++) {
+			board.doMove(notations.get(i));
+		}
 	}
 
 	public int getNumRows() {
