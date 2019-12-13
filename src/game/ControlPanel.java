@@ -135,4 +135,12 @@ public class ControlPanel extends JPanel {
 
 		}
 	}
+
+	public void reset() {
+		setCurrentTurn("Black");
+		buttons.get(0).setEnabled(true);
+		buttons.get(1).setEnabled(true);
+		buttons.get(2).setEnabled(false);
+		buttons.get(3).setEnabled(false);
+	}
 }

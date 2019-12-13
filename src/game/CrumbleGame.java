@@ -7,7 +7,9 @@ import java.awt.MenuBar;
 import java.awt.MenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -109,6 +111,8 @@ public class CrumbleGame extends JFrame {
 			menu.add(item);
 			
 			item = new MenuItem("Load");
+			item.setActionCommand("load");
+			item.addActionListener(menuBarListener);
 			menu.add(item);
 			
 			return menu;
@@ -148,6 +152,9 @@ public class CrumbleGame extends JFrame {
 			else if(action.equals("save")) {
 				saveFile();
 			}
+			else if(action.equals("load")) {
+				loadFile();
+			}
 			else if(action.equals("edit_board_size")) {
 				editBoardSize();
 			}
@@ -180,6 +187,37 @@ public class CrumbleGame extends JFrame {
 		}
 	}
 	
+	public void loadFile() {
+		if(fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+			File file = fileChooser.getSelectedFile();
+			try {
+	            if (!file.exists()) {
+	                return;
+	            }
+	            BufferedReader br = new BufferedReader(new FileReader(file));
+	            
+	            moveNotations.clear();
+	            String line = br.readLine();
+	            while(line != null) {
+	            	moveNotations.add(line);
+	            	line = br.readLine();
+	            }
+	            loadGameFromNotations(moveNotations);
+	            br.close();
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+		}
+	}
+	
+	private void loadGameFromNotations(ArrayList<String> moveNotations) {
+		this.remove(board);
+		board  = new GameBoard(this);
+		add(board, BorderLayout.CENTER);
+		controlPanel.reset();
+		pack();
+	}
+
 	public int getNumRows() {
 		return numRows;
 	}
