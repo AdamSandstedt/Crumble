@@ -875,29 +875,33 @@ public class GameBoard extends JPanel {
 
 	public void doMove(String moveNotation) {
 		if(moveNotation.matches("[0-9]+(,[0-9]+)*V.*")) { // vertical split
+			splitDirection = false;
 			String startPieceNotation = moveNotation.substring(0, moveNotation.indexOf('V')); // The notation of the first piece split
 			GamePiece startPiece = getPieceWithNotation(startPieceNotation);
 			firstSelectionPoint = startPiece.getVerticalSplitStart();
 			if(moveNotation.matches("[0-9]+(,[0-9]+)*V[0-9].*")) { // The split was through multiple pieces
 				int numberOfSplits = Integer.parseInt(moveNotation.split("[0-9]+(,[0-9]+)*V")[1].split("-")[0]);
-				secondSelectionPoint = getSplitPointAbove(firstSelectionPoint, numberOfSplits);
+				secondSelectionPoint = getEndSplitPoint(numberOfSplits);
 			}
 			else { // Only split one piece
 				secondSelectionPoint = startPiece.getVerticalSplitEnd();
 			}
+			System.out.println(firstSelectionPoint.getX() + ", " + firstSelectionPoint.getY() + " " + secondSelectionPoint.getX() + ", " + secondSelectionPoint.getY());
 			split();
 		}
 		else if(moveNotation.matches("[0-9]+(,[0-9]+)*H.*")) { // horizontal split
+			splitDirection = true;
 			String startPieceNotation = moveNotation.substring(0, moveNotation.indexOf('H')); // The notation of the first piece split
 			GamePiece startPiece = getPieceWithNotation(startPieceNotation);
 			firstSelectionPoint = startPiece.getHorizontalSplitStart();
 			if(moveNotation.matches("[0-9]+(,[0-9]+)*H[0-9].*")) { // The split was through multiple pieces
 				int numberOfSplits = Integer.parseInt(moveNotation.split("[0-9]+(,[0-9]+)*H")[1].split("-")[0]);
-				secondSelectionPoint = getSplitPointRight(firstSelectionPoint, numberOfSplits);
+				secondSelectionPoint = getEndSplitPoint(numberOfSplits);
 			}
 			else { // Only split one piece
 				secondSelectionPoint = startPiece.getHorizontalSplitEnd();
 			}
+			System.out.println(firstSelectionPoint.getX() + ", " + firstSelectionPoint.getY() + " " + secondSelectionPoint.getX() + ", " + secondSelectionPoint.getY());
 			split();
 		}
 		else if(moveNotation.matches("[0-9]+(,[0-9]+)*J.*")) { // join
@@ -908,6 +912,18 @@ public class GameBoard extends JPanel {
 			secondSelectionPoint = getEndJoinPoint(firstSelectionPoint, endJoinNotation);
 			join();
 		}
+		currentTurn = !currentTurn;
+		currentAction = "split";
+		firstSelectionPiece = null;
+		showStartPoint = true;
+		ArrayList<JButton> buttons = controlPanel.getButtons();
+		buttons.get(0).setEnabled(true);
+		buttons.get(1).setEnabled(true);
+		buttons.get(2).setEnabled(false);
+		buttons.get(3).setEnabled(false);
+		repaint();
+		if(currentTurn) controlPanel.setCurrentTurn("Black's");
+		else controlPanel.setCurrentTurn("White's");
 	}
 
 	private BoardPoint getEndJoinPoint(BoardPoint firstPoint, String notation) {
@@ -915,18 +931,56 @@ public class GameBoard extends JPanel {
 		return null;
 	}
 
-	private BoardPoint getSplitPointRight(BoardPoint firstSelectionPoint2, int numberOfSplits) {
-		// TODO Auto-generated method stub
-		return null;
+	private BoardPoint getEndSplitPoint(int numberOfSplits) {
+		ArrayList<BoardPoint> splitPoints = new ArrayList<>();
+		if(splitDirection) { // horizontal
+			for(GamePiece piece: gamePieces) {
+				BoardPoint endPoint = piece.getHorizontalSplitEnd();
+				if(endPoint == null) continue;
+				if(firstSelectionPoint.getY() == endPoint.getY() && firstSelectionPoint.getX() < endPoint.getX()) {
+					int index;
+					for(index = 0; index < splitPoints.size(); index++) {
+						if(splitPoints.get(index).getX() > endPoint.getX()) {
+							splitPoints.add(index, endPoint);
+							break;
+						}
+					}
+					if(index == splitPoints.size()) splitPoints.add(endPoint);
+				}
+			}
+			System.out.println("splitPoints: ");
+			for(BoardPoint p: splitPoints) System.out.println(p.getX() + ", " + p.getY());
+		}
+		else { // vertical
+			for(GamePiece piece: gamePieces) {
+				BoardPoint endPoint = piece.getVerticalSplitEnd();
+				if(endPoint == null) continue;
+				if(firstSelectionPoint.getX() == endPoint.getX() && firstSelectionPoint.getY() < endPoint.getY()) {
+					int index;
+					for(index = 0; index < splitPoints.size(); index++) {
+						if(splitPoints.get(index).getY() > endPoint.getY()) {
+							splitPoints.add(index, endPoint);
+							break;
+						}
+					}
+					if(index == splitPoints.size()) splitPoints.add(endPoint);
+				}
+			}
+		}
+		return splitPoints.get(numberOfSplits-1);
 	}
 
-	private BoardPoint getSplitPointAbove(BoardPoint firstPoint, int numberOfSplits) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private GamePiece getPieceWithNotation(String startPieceNotation) {
-		// TODO Auto-generated method stub
+	private GamePiece getPieceWithNotation(String pieceNotation) {
+		for(GamePiece piece: gamePieces)
+			if(piece.getNotation().toString().equals(pieceNotation)) {
+				System.out.println("piece found: " + pieceNotation);
+				return piece;
+			}
+		
+		GamePiece onePiece = null;
+		for(GamePiece piece: gamePieces)
+			if(piece.getNotation().toString().equals("0")) onePiece = piece;
+		
 		return null;
 	}
 

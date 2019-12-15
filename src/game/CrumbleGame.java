@@ -217,7 +217,7 @@ public class CrumbleGame extends JFrame {
 		controlPanel.reset();
 		pack();
 		
-        moveNotations.clear();
+        moveNotations = new ArrayList<>(notations);
 		for(int i = 0; i < notations.size(); i++) {
 			board.doMove(notations.get(i));
 		}
