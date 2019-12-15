@@ -46,7 +46,8 @@ public class GameBoard extends JPanel {
 	private String currentMoveNotation;
 	private Set<GamePiece> piecesToSplit;
 	private Map<BoardPoint, GamePiece> gamePieceAt;
-	private double smallestWidth, smallestHeight;
+	private final double smallestWidth = Math.pow(2,-10); // In theory, a piece could get smaller than this, but I can't imagine it actually happening in a real game
+	private final double smallestHeight = Math.pow(2,-10);
 	private double xConversion;
 	private double yConversion;
 
@@ -100,8 +101,6 @@ public class GameBoard extends JPanel {
 		showJoinRect = false;
 		splitDirection = false;
 		showStartPoint = true;
-		smallestWidth = 1;
-		smallestHeight = 1;
 		if(numRows == 0) numRows = 6;
 		if(numColumns == 0) numColumns = 6;
 		xConversion = (double)boardWidth / numColumns;
@@ -304,12 +303,6 @@ public class GameBoard extends JPanel {
 		gamePieceAt.put(newPiece.getBottomLeft(), newPiece);
 		chain.add(newPiece);
 		firstSelectionPiece = newPiece;
-		smallestWidth = Double.MAX_VALUE;
-		smallestHeight = Double.MAX_VALUE;
-		for(GamePiece piece: gamePieces) {
-			if(piece.getTopRight().getX() - piece.getBottomLeft().getX() < smallestWidth) smallestWidth = piece.getTopRight().getX() - piece.getBottomLeft().getX();
-			if(piece.getTopRight().getY() - piece.getBottomLeft().getY() < smallestHeight) smallestHeight = piece.getTopRight().getY() - piece.getBottomLeft().getY();
-		}
 		updateBoardPoints();
 		updateNotations();
 
@@ -358,7 +351,6 @@ public class GameBoard extends JPanel {
 				chain.add(newPieceTop);
 				swapStartPieces.add(newPieceTop);
 				swapStartPieces.add(newPieceBottom);
-				if(newPieceBottom.getTopRight().getY() - newPieceBottom.getBottomLeft().getY() < smallestHeight) smallestHeight = newPieceBottom.getTopRight().getY() - newPieceBottom.getBottomLeft().getY();
 			}
 		}
 		else { // vertical
@@ -391,7 +383,6 @@ public class GameBoard extends JPanel {
 				chain.add(newPieceRight);
 				swapStartPieces.add(newPieceRight);
 				swapStartPieces.add(newPieceLeft);
-				if(newPieceLeft.getTopRight().getX() - newPieceLeft.getBottomLeft().getX() < smallestWidth) smallestWidth = newPieceLeft.getTopRight().getX() - newPieceLeft.getBottomLeft().getX();
 			}
 		}
 		updateBoardPoints();
