@@ -874,19 +874,23 @@ public class GameBoard extends JPanel {
 	}
 
 	public void doMove(String moveNotation) {
+		String swapNotation = null;
 		if(moveNotation.matches("[0-9]+(,[0-9]+)*V.*")) { // vertical split
 			splitDirection = false;
 			String startPieceNotation = moveNotation.substring(0, moveNotation.indexOf('V')); // The notation of the first piece split
 			GamePiece startPiece = getPieceWithNotation(startPieceNotation);
 			firstSelectionPoint = startPiece.getVerticalSplitStart();
-			if(moveNotation.matches("[0-9]+(,[0-9]+)*V[0-9].*")) { // The split was through multiple pieces
+			if(moveNotation.matches("[0-9]+(,[0-9]+)*V[0-9]+.*")) { // The split was through multiple pieces
 				int numberOfSplits = Integer.parseInt(moveNotation.split("[0-9]+(,[0-9]+)*V")[1].split("-")[0]);
 				secondSelectionPoint = getEndSplitPoint(numberOfSplits);
 			}
 			else { // Only split one piece
 				secondSelectionPoint = startPiece.getVerticalSplitEnd();
 			}
-			System.out.println(firstSelectionPoint.getX() + ", " + firstSelectionPoint.getY() + " " + secondSelectionPoint.getX() + ", " + secondSelectionPoint.getY());
+			if(moveNotation.matches("[0-9]+(,[0-9]+)*V[0-9]*")) swapNotation = "";
+			else if(moveNotation.matches("[0-9]+(,[0-9]+)*V[0-9]*[NESW]+")) swapNotation = moveNotation.split("V[0-9]*")[1];
+			else if(moveNotation.matches("[0-9]+(,[0-9]+)*V[0-9]*[NESW]-[NESW]+")) swapNotation = moveNotation.split("V[0-9]*")[1];
+			else if(moveNotation.matches("[0-9]+(,[0-9]+)*V[0-9]*-[0-9]+[NESW]-[NESW]+")) swapNotation = moveNotation.split("V[0-9]*-")[1];
 			split();
 		}
 		else if(moveNotation.matches("[0-9]+(,[0-9]+)*H.*")) { // horizontal split
@@ -901,7 +905,10 @@ public class GameBoard extends JPanel {
 			else { // Only split one piece
 				secondSelectionPoint = startPiece.getHorizontalSplitEnd();
 			}
-			System.out.println(firstSelectionPoint.getX() + ", " + firstSelectionPoint.getY() + " " + secondSelectionPoint.getX() + ", " + secondSelectionPoint.getY());
+			if(moveNotation.matches("[0-9]+(,[0-9]+)*H[0-9]*")) swapNotation = "";
+			else if(moveNotation.matches("[0-9]+(,[0-9]+)*H[0-9]*[NESW]+")) swapNotation = moveNotation.split("H[0-9]*")[1];
+			else if(moveNotation.matches("[0-9]+(,[0-9]+)*H[0-9]*[NESW]-[NESW]+")) swapNotation = moveNotation.split("H[0-9]*")[1];
+			else if(moveNotation.matches("[0-9]+(,[0-9]+)*H[0-9]*-[0-9]+[NESW]-[NESW]+")) swapNotation = moveNotation.split("H[0-9]*-")[1];
 			split();
 		}
 		else if(moveNotation.matches("[0-9]+(,[0-9]+)*J.*")) { // join
@@ -912,6 +919,61 @@ public class GameBoard extends JPanel {
 			secondSelectionPoint = getEndJoinPoint(firstSelectionPoint, endJoinNotation);
 			join();
 		}
+		
+		if(swapNotation.equals("")) {
+			firstSelectionPiece = null;
+		}
+		else {
+			if(swapNotation.matches("[0-9]+[NESW]-[NESW]+")) { // multiple pieces split
+				int splitIndex = Integer.parseInt(swapNotation.substring(0, 1));
+				firstSelectionPiece = getSelectionPiece(splitIndex, swapNotation.charAt(1));
+				swapNotation = swapNotation.split("[NESW]-")[1];
+			}
+			else if(swapNotation.matches("[NESW]-[NESW]+")) { // Only one piece split but starting piece is specified
+				firstSelectionPiece = getSelectionPiece(1, swapNotation.charAt(0));
+				swapNotation = swapNotation.split("-")[1];
+			}
+			else { // Only one piece split and starting piece is implied by the initial swap direction
+				firstSelectionPiece = getSelectionPiece(1, swapNotation.charAt(0));
+			}
+		}
+		for(int index = 0; index < swapNotation.length(); index++) {
+			switch(swapNotation.charAt(index)) {
+			case 'N':
+				for(GamePiece neighbor: firstSelectionPiece.getNeighbors()) {
+					if(neighbor.getBottomLeft().getX() == firstSelectionPiece.getBottomLeft().getX() && neighbor.getBottomLeft().getY() == firstSelectionPiece.getTopRight().getY()) {
+						secondSelectionPiece = neighbor;
+						swap();
+					}
+				}
+				break;
+			case 'S':
+				for(GamePiece neighbor: firstSelectionPiece.getNeighbors()) {
+					if(neighbor.getBottomLeft().getX() == firstSelectionPiece.getBottomLeft().getX() && neighbor.getTopRight().getY() == firstSelectionPiece.getBottomLeft().getY()) {
+						secondSelectionPiece = neighbor;
+						swap();
+					}
+				}
+				break;
+			case 'E':
+				for(GamePiece neighbor: firstSelectionPiece.getNeighbors()) {
+					if(neighbor.getBottomLeft().getY() == firstSelectionPiece.getBottomLeft().getY() && neighbor.getBottomLeft().getX() == firstSelectionPiece.getTopRight().getX()) {
+						secondSelectionPiece = neighbor;
+						swap();
+					}
+				}
+				break;
+			case 'W':
+				for(GamePiece neighbor: firstSelectionPiece.getNeighbors()) {
+					if(neighbor.getBottomLeft().getY() == firstSelectionPiece.getBottomLeft().getY() && neighbor.getTopRight().getX() == firstSelectionPiece.getBottomLeft().getX()) {
+						secondSelectionPiece = neighbor;
+						swap();
+					}
+				}
+				break;
+			}
+		}
+		
 		currentTurn = !currentTurn;
 		currentAction = "split";
 		firstSelectionPiece = null;
@@ -924,6 +986,71 @@ public class GameBoard extends JPanel {
 		repaint();
 		if(currentTurn) controlPanel.setCurrentTurn("Black's");
 		else controlPanel.setCurrentTurn("White's");
+	}
+
+	private GamePiece getSelectionPiece(int splitIndex, char dir) {
+		ArrayList<GamePiece> pieces = new ArrayList<>();
+		if(dir == 'N') {
+			double maxY = 0;
+			for(GamePiece piece: swapStartPieces)
+				if(piece.getBottomLeft().getY() > maxY) maxY = piece.getBottomLeft().getY();
+			for(GamePiece piece: swapStartPieces)
+				if(piece.getBottomLeft().getY() == maxY) {
+					int index;
+					for(index = 0; index < pieces.size(); index++)
+						if(pieces.get(index).getBottomLeft().getX() > piece.getBottomLeft().getX()) {
+							pieces.add(index, piece);
+							break;
+						}
+					if(index == pieces.size()) pieces.add(piece);
+				}
+		}
+		else if(dir == 'S') {
+			double minY = 100;
+			for(GamePiece piece: swapStartPieces)
+				if(piece.getBottomLeft().getY() < minY) minY = piece.getBottomLeft().getY();
+			for(GamePiece piece: swapStartPieces)
+				if(piece.getBottomLeft().getY() == minY) {
+					int index;
+					for(index = 0; index < pieces.size(); index++)
+						if(pieces.get(index).getBottomLeft().getX() > piece.getBottomLeft().getX()) {
+							pieces.add(index, piece);
+							break;
+						}
+					if(index == pieces.size()) pieces.add(piece);
+				}
+		}
+		else if(dir == 'E') {
+			double maxX = 0;
+			for(GamePiece piece: swapStartPieces)
+				if(piece.getBottomLeft().getX() > maxX) maxX = piece.getBottomLeft().getX();
+			for(GamePiece piece: swapStartPieces)
+				if(piece.getBottomLeft().getX() == maxX) {
+					int index;
+					for(index = 0; index < pieces.size(); index++)
+						if(pieces.get(index).getBottomLeft().getY() > piece.getBottomLeft().getY()) {
+							pieces.add(index, piece);
+							break;
+						}
+					if(index == pieces.size()) pieces.add(piece);
+				}
+		}
+		else if(dir == 'W') {
+			double minX = 100;
+			for(GamePiece piece: swapStartPieces)
+				if(piece.getBottomLeft().getX() < minX) minX = piece.getBottomLeft().getX();
+			for(GamePiece piece: swapStartPieces)
+				if(piece.getBottomLeft().getX() == minX) {
+					int index;
+					for(index = 0; index < pieces.size(); index++)
+						if(pieces.get(index).getBottomLeft().getY() > piece.getBottomLeft().getY()) {
+							pieces.add(index, piece);
+							break;
+						}
+					if(index == pieces.size()) pieces.add(piece);
+				}
+		}
+		return pieces.get(splitIndex-1);
 	}
 
 	private BoardPoint getEndJoinPoint(BoardPoint firstPoint, String notation) {
@@ -948,8 +1075,6 @@ public class GameBoard extends JPanel {
 					if(index == splitPoints.size()) splitPoints.add(endPoint);
 				}
 			}
-			System.out.println("splitPoints: ");
-			for(BoardPoint p: splitPoints) System.out.println(p.getX() + ", " + p.getY());
 		}
 		else { // vertical
 			for(GamePiece piece: gamePieces) {
@@ -973,7 +1098,6 @@ public class GameBoard extends JPanel {
 	private GamePiece getPieceWithNotation(String pieceNotation) {
 		for(GamePiece piece: gamePieces)
 			if(piece.getNotation().toString().equals(pieceNotation)) {
-				System.out.println("piece found: " + pieceNotation);
 				return piece;
 			}
 		
