@@ -63,7 +63,7 @@ public class GameBoard extends JPanel {
 		setPreferredSize(new Dimension(boardWidth+GamePiece.X_OFFSET*2, boardHeight+GamePiece.Y_OFFSET*2));
 		addMouseListener(new BoardMouseListener(this));
 		addMouseMotionListener(new BoardMouseMotionListener());
-		
+
 		addComponentListener(new ComponentAdapter() {
 			@Override
 		    public void componentResized(ComponentEvent e) {
@@ -315,6 +315,8 @@ public class GameBoard extends JPanel {
 		buttons.get(3).setEnabled(true);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
+
+		crumbleGame.saveState();
 		this.repaint();
 	}
 
@@ -397,6 +399,8 @@ public class GameBoard extends JPanel {
 		buttons.get(3).setEnabled(true);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
+
+		crumbleGame.saveState();
 		this.repaint();
 	}
 
@@ -407,13 +411,13 @@ public class GameBoard extends JPanel {
 			boardPoints.put(piece.getTopRight(), piece.getTopRight());
 		}
 	}
-	
+
 	private int getNumPointsBetween(GamePiece bottomLeft, GamePiece topRight) {
 		BoardPoint p1 = bottomLeft.getBottomLeft();
 		BoardPoint p2 = topRight.getBottomLeft();
 		return getNumPointsBetween(p1, p2);
 	}
-	
+
 	private int getNumPointsBetween(BoardPoint p1, BoardPoint p2) {
 		int count = 0;
 		double x, y;
@@ -738,16 +742,22 @@ public class GameBoard extends JPanel {
 				showStartPoint = true;
 				repaint();
 			}
+			else if(currentAction.equals("undo")) {
+				crumbleGame.loadState("undo");
+			}
+			else if(currentAction.equals("redo")) {
+				crumbleGame.loadState("redo");
+			}
 		}
 	}
 
 	public class BoardMouseListener implements MouseListener {
 		private GameBoard board;
-		
+
 		public BoardMouseListener(GameBoard board) {
 			this.board = board;
 		}
-		
+
 		@Override
 		public void mouseClicked(MouseEvent e) {}
 
@@ -928,7 +938,7 @@ public class GameBoard extends JPanel {
 			else swapNotation = moveNotation.split("J[0-9]+(,[0-9]+)*")[1];
 			join();
 		}
-		
+
 		if(swapNotation.equals("")) {
 			firstSelectionPiece = null;
 		}
@@ -983,7 +993,7 @@ public class GameBoard extends JPanel {
 				break;
 			}
 		}
-		
+
 		currentTurn = !currentTurn;
 		currentAction = "split";
 		firstSelectionPiece = null;
@@ -1067,7 +1077,7 @@ public class GameBoard extends JPanel {
 		String[] joinDistances = notation.split(",");
 		int xDistance = Integer.parseInt(joinDistances[0]);
 		int yDistance = Integer.parseInt(joinDistances[1]);
-		
+
 		BoardPoint bottomRight = null;
 		for(BoardPoint point: boardPoints.keySet()) {
 			if(point.getY() == firstPoint.getY() && point.getX() > firstPoint.getX() && getNumPointsBetween(firstPoint, point) == xDistance - 1) {
@@ -1075,13 +1085,13 @@ public class GameBoard extends JPanel {
 				break;
 			}
 		}
-		
+
 		for(BoardPoint point: boardPoints.keySet()) {
 			if(point.getX() == bottomRight.getX() && point.getY() > bottomRight.getY() && getNumPointsBetween(bottomRight, point) == yDistance - 1) {
 				return point;
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -1152,7 +1162,7 @@ public class GameBoard extends JPanel {
 			}
 			direction = !direction;
 		}
-		
+
 		return gamePieceAt.get(currentPoint);
 	}
 

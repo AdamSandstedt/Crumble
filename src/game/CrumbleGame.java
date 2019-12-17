@@ -31,11 +31,12 @@ public class CrumbleGame extends JFrame {
 	private JFileChooser fileChooser;
 	private int numRows = 0;
 	private int numColumns = 0;
+  private int historyIndex;
 
 	public CrumbleGame() {
 		moveNotations = new ArrayList<>();
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-		
+
 		fileChooser = new JFileChooser(){
 		    @Override
 		    public void approveSelection(){
@@ -58,16 +59,18 @@ public class CrumbleGame extends JFrame {
 		fileChooser.setDialogTitle("Select text file to save game to:");
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		fileChooser.setFileFilter(new FileNameExtensionFilter("Text file","txt"));
-		
+
 		menu = new CrumbleMenuBar();
 		this.setMenuBar(menu);
-		
+
 		board  = new GameBoard(this);
 		add(board, BorderLayout.CENTER);
-		
+
 		controlPanel = new ControlPanel(this);
 		add(controlPanel, BorderLayout.EAST);
-		
+
+    historyIndex = 0;
+    
 		this.pack();
 		setVisible(true);
 	}
@@ -83,64 +86,64 @@ public class CrumbleGame extends JFrame {
 	public ControlPanel getControlPanel() {
 		return controlPanel;
 	}
-	
+
 	public class CrumbleMenuBar extends MenuBar {
 		MenuBarListener menuBarListener;
 		Menu file;
 		Menu edit;
 		Menu view;
-		
+
 		public CrumbleMenuBar() {
 			menuBarListener = new MenuBarListener();
 			file = createFileMenu();
 			add(file);
-			
+
 			edit = createEditMenu();
 			add(edit);
-			
+
 			view = createViewMenu();
 			add(view);
 		}
-		
+
 		private Menu createFileMenu() {
 			Menu menu = new Menu("File");
-			
+
 			MenuItem item = new MenuItem("Save");
 			item.setActionCommand("save");
 			item.addActionListener(menuBarListener);
 			menu.add(item);
-			
+
 			item = new MenuItem("Load");
 			item.setActionCommand("load");
 			item.addActionListener(menuBarListener);
 			menu.add(item);
-			
+
 			return menu;
 		}
-		
+
 		private Menu createEditMenu() {
 			Menu menu = new Menu("Edit");
-			
+
 			MenuItem item = new MenuItem("Board Size");
 			item.setActionCommand("edit_board_size");
 			item.addActionListener(menuBarListener);
 			menu.add(item);
-			
+
 			return menu;
 		}
-		
+
 		private Menu createViewMenu() {
 			Menu menu = new Menu("View");
-			
+
 			MenuItem item = new MenuItem("Cell Notations");
 			item.setActionCommand("view_notations");
 			item.addActionListener(menuBarListener);
 			menu.add(item);
-			
+
 			return menu;
 		}
 	}
-	
+
 	public class MenuBarListener implements ActionListener {
 
 		@Override
@@ -166,7 +169,7 @@ public class CrumbleGame extends JFrame {
 		moveNotations.add(currentMoveNotation);
 		System.out.println(currentMoveNotation);
 	}
-	
+
 	public void saveFile() {
 		if(fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			File file = fileChooser.getSelectedFile();
@@ -175,7 +178,7 @@ public class CrumbleGame extends JFrame {
 	                file.createNewFile();
 	            }
 	            FileWriter fw = new FileWriter(file);
-	            
+
 	            if(!moveNotations.isEmpty()) fw.write(moveNotations.get(0));
 	            for(int i = 1; i < moveNotations.size(); i++) {
 	            	fw.write(System.lineSeparator() + moveNotations.get(i));
@@ -186,7 +189,7 @@ public class CrumbleGame extends JFrame {
 	        }
 		}
 	}
-	
+
 	public void loadFile() {
 		if(fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 			File file = fileChooser.getSelectedFile();
@@ -195,7 +198,7 @@ public class CrumbleGame extends JFrame {
 	                return;
 	            }
 	            BufferedReader br = new BufferedReader(new FileReader(file));
-	            
+
 	            ArrayList<String> newNotations = new ArrayList<>();
 	            String line = br.readLine();
 	            while(line != null) {
@@ -209,14 +212,14 @@ public class CrumbleGame extends JFrame {
 	        }
 		}
 	}
-	
+
 	private void loadGameFromNotations(ArrayList<String> notations) {
 		this.remove(board);
 		board  = new GameBoard(this);
 		add(board, BorderLayout.CENTER);
 		controlPanel.reset();
 		pack();
-		
+
         moveNotations = new ArrayList<>(notations);
 		for(int i = 0; i < notations.size(); i++) {
 			board.doMove(notations.get(i));
@@ -230,12 +233,12 @@ public class CrumbleGame extends JFrame {
 	public int getNumColumns() {
 		return numColumns;
 	}
-	
+
 	public void editBoardSize() {
 		SizeDialog dialog = new SizeDialog(board, this);
 		dialog.setVisible(true);
 	}
-	
+
 	public void setNumRows(int numRows) {
 		this.numRows = numRows;
 		setGameBoard(new GameBoard(this));
@@ -245,7 +248,7 @@ public class CrumbleGame extends JFrame {
 		this.numColumns = numColumns;
 		setGameBoard(new GameBoard(this));
 	}
-	
+
 	private void setGameBoard(GameBoard gameBoard) {
 		moveNotations.clear();
 		remove(board);
@@ -263,7 +266,7 @@ public class CrumbleGame extends JFrame {
 		public SizeDialog(GameBoard board, CrumbleGame game) {
 			this.board = board;
 			this.game = game;
-			
+
 			setLayout(new GridLayout(1,2));
 			columnSpinner = new JSpinner(new SpinnerNumberModel(6, 2, 16, 1));
 			columnSpinner.addChangeListener(new ChangeListener() {
@@ -275,7 +278,7 @@ public class CrumbleGame extends JFrame {
 				}
 			});
 			add(columnSpinner);
-			
+
 			rowSpinner = new JSpinner(new SpinnerNumberModel(6, 2, 16, 1));
 			rowSpinner.addChangeListener(new ChangeListener() {
 				@Override
@@ -287,6 +290,54 @@ public class CrumbleGame extends JFrame {
 			this.setSize(100, 100);
 		}
 
+	}
+
+	public void saveState() {
+		historyIndex += 1;
+		while(historyIndex != history.size()) history.remove(history.size()-1);
+		history.add(new GameBoard(board));
+		controlPanel.enableUndo(true);
+		controlPanel.enableRedo(false);
+	}
+
+	public void loadState(int index) {
+		if(index >= history.size()) historyIndex = history.size() - 1;
+		else if(index < 0) historyIndex = 0;
+		else historyIndex = index;
+
+		remove(board);
+		board = history.get(historyIndex);
+		add(board, BorderLayout.CENTER);
+		revalidate();
+
+		String currentAction = board.getCurrentAction();
+		ArrayList<JButton> buttons = controlPanel.getButtons();
+		if(currentAction.equals("split") || currentAction.equals("join")) {
+			buttons.get(0).setEnabled(true);
+			buttons.get(1).setEnabled(true);
+			buttons.get(2).setEnabled(false);
+			buttons.get(3).setEnabled(false);
+		}
+		else {
+			buttons.get(0).setEnabled(false);
+			buttons.get(1).setEnabled(false);
+			buttons.get(2).setEnabled(true);
+			buttons.get(3).setEnabled(true);
+		}
+		controlPanel.enableUndo(historyIndex > 0);
+		controlPanel.enableRedo(historyIndex < history.size() - 1);
+		repaint();
+		board.repaint();
+		controlPanel.repaint();
+	}
+
+	public void loadState(String action) {
+		if(action.equals("undo")) {
+			loadState(historyIndex - 1);
+		}
+		else if(action.equals("redo")) {
+			loadState(historyIndex + 1);
+		}
 	}
 
 }
