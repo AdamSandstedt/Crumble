@@ -912,11 +912,13 @@ public class GameBoard extends JPanel {
 			split();
 		}
 		else if(moveNotation.matches("[0-9]+(,[0-9]+)*J.*")) { // join
-			String startPieceNotation = moveNotation.substring(0, moveNotation.indexOf('J')); // The notation of the first piece split
+			String startPieceNotation = moveNotation.substring(0, moveNotation.indexOf('J')); // The notation of the bottom left piece to join
 			GamePiece startPiece = getPieceWithNotation(startPieceNotation);
 			firstSelectionPoint = startPiece.getBottomLeft();
 			String endJoinNotation = moveNotation.split("[0-9]+(,[0-9]+)*J")[1].split("[NESW]")[0];
 			secondSelectionPoint = getEndJoinPoint(firstSelectionPoint, endJoinNotation);
+			if(moveNotation.matches("[0-9]+(,[0-9]+)*J[0-9]+(,[0-9]+)*")) swapNotation = "";
+			else swapNotation = moveNotation.split("J[0-9]+(,[0-9]+)*")[1];
 			join();
 		}
 		
@@ -933,8 +935,9 @@ public class GameBoard extends JPanel {
 				firstSelectionPiece = getSelectionPiece(1, swapNotation.charAt(0));
 				swapNotation = swapNotation.split("-")[1];
 			}
-			else { // Only one piece split and starting piece is implied by the initial swap direction
-				firstSelectionPiece = getSelectionPiece(1, swapNotation.charAt(0));
+			else { // Only one piece split and starting piece is implied by the initial swap direction or join
+				// if a join happened, then firstSelectionPiece will already be chosen (not null)
+				if(firstSelectionPiece == null) firstSelectionPiece = getSelectionPiece(1, swapNotation.charAt(0));
 			}
 		}
 		for(int index = 0; index < swapNotation.length(); index++) {
@@ -1054,7 +1057,24 @@ public class GameBoard extends JPanel {
 	}
 
 	private BoardPoint getEndJoinPoint(BoardPoint firstPoint, String notation) {
-		// TODO Auto-generated method stub
+		String[] joinDistances = notation.split(",");
+		int xDistance = Integer.parseInt(joinDistances[0]);
+		int yDistance = Integer.parseInt(joinDistances[1]);
+		
+		BoardPoint bottomRight = null;
+		for(BoardPoint point: boardPoints.keySet()) {
+			if(point.getY() == firstPoint.getY() && point.getX() > firstPoint.getX() && getNumPointsBetween(firstPoint, point) == xDistance - 1) {
+				bottomRight = point;
+				break;
+			}
+		}
+		
+		for(BoardPoint point: boardPoints.keySet()) {
+			if(point.getX() == bottomRight.getX() && point.getY() > bottomRight.getY() && getNumPointsBetween(bottomRight, point) == yDistance - 1) {
+				return point;
+			}
+		}
+		
 		return null;
 	}
 
