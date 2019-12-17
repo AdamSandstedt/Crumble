@@ -1123,16 +1123,37 @@ public class GameBoard extends JPanel {
 	}
 
 	private GamePiece getPieceWithNotation(String pieceNotation) {
-		for(GamePiece piece: gamePieces)
+		for(GamePiece piece: gamePieces) // if pieceNotation is the same as the notation stored in one of the pieces, return that piece
 			if(piece.getNotation().toString().equals(pieceNotation)) {
 				return piece;
 			}
+		// if pieceNotation is not in the standard notation that my game uses, we need to manually do the movements to get the piece
+		// this happens because it is possible to notate some pieces in multiple different ways
+		boolean direction = true; // 1: horizontal, 0: vertical
+		BoardPoint currentPoint = getPointAt(0, 0);
+		String[] distances = pieceNotation.split(",");
+		for(String distance: distances) {
+			int intDistance = Integer.parseInt(distance);
+			if(direction) { // get point to the right
+				for(BoardPoint point: boardPoints.keySet()) {
+					if(point.getY() == currentPoint.getY() && point.getX() > currentPoint.getX() && getNumPointsBetween(currentPoint, point) == intDistance - 1) {
+						currentPoint = point;
+						break;
+					}
+				}
+			}
+			else { // get point up
+				for(BoardPoint point: boardPoints.keySet()) {
+					if(point.getX() == currentPoint.getX() && point.getY() > currentPoint.getY() && getNumPointsBetween(currentPoint, point) == intDistance - 1) {
+						currentPoint = point;
+						break;
+					}
+				}
+			}
+			direction = !direction;
+		}
 		
-		GamePiece onePiece = null;
-		for(GamePiece piece: gamePieces)
-			if(piece.getNotation().toString().equals("0")) onePiece = piece;
-		
-		return null;
+		return gamePieceAt.get(currentPoint);
 	}
 
 }
