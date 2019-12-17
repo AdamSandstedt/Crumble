@@ -647,6 +647,12 @@ public class GameBoard extends JPanel {
 				if(color) message = "Black wins!";
 				else message = "White wins!";
 				JOptionPane.showMessageDialog(this, message, "Winner!", JOptionPane.INFORMATION_MESSAGE);
+				ArrayList<JButton> buttons = controlPanel.getButtons();
+				buttons.get(2).setEnabled(false);
+				buttons.get(3).setEnabled(false);
+				firstSelectionPiece = null;
+				swapStartPieces.clear();
+				crumbleGame.addMove(currentMoveNotation);
 			}
 		}
 	}
