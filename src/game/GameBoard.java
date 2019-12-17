@@ -808,6 +808,7 @@ public class GameBoard extends JPanel {
 					showStartPoint = true;
 				}
 			}
+			repaint();
 		}
 
 		@Override
