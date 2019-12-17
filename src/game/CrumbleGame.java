@@ -166,7 +166,12 @@ public class CrumbleGame extends JFrame {
 	}
 
 	public void addMove(String currentMoveNotation) {
+		while(historyIndex != moveNotations.size()) moveNotations.remove(moveNotations.size()-1);
+		historyIndex += 1;
 		moveNotations.add(currentMoveNotation);
+		controlPanel.enableUndo(true);
+		controlPanel.enableRedo(false);
+
 		System.out.println(currentMoveNotation);
 	}
 
@@ -206,6 +211,7 @@ public class CrumbleGame extends JFrame {
 	            	line = br.readLine();
 	            }
 	            loadGameFromNotations(newNotations);
+	            moveNotations = newNotations;
 	            br.close();
 	        } catch (IOException e) {
 	            e.printStackTrace();
@@ -220,7 +226,6 @@ public class CrumbleGame extends JFrame {
 		controlPanel.reset();
 		pack();
 
-        moveNotations = new ArrayList<>(notations);
 		for(int i = 0; i < notations.size(); i++) {
 			board.doMove(notations.get(i));
 		}
@@ -292,40 +297,22 @@ public class CrumbleGame extends JFrame {
 
 	}
 
-	public void saveState() {
-		historyIndex += 1;
-		while(historyIndex != history.size()) history.remove(history.size()-1);
-		history.add(new GameBoard(board));
-		controlPanel.enableUndo(true);
-		controlPanel.enableRedo(false);
-	}
-
 	public void loadState(int index) {
-		if(index >= history.size()) historyIndex = history.size() - 1;
+		if(index > moveNotations.size()) historyIndex = moveNotations.size();
 		else if(index < 0) historyIndex = 0;
 		else historyIndex = index;
-
-		remove(board);
-		board = history.get(historyIndex);
-		add(board, BorderLayout.CENTER);
-		revalidate();
-
-		String currentAction = board.getCurrentAction();
+		
+		ArrayList<String> tempNotations = new ArrayList<>(moveNotations.subList(0, historyIndex));
+		loadGameFromNotations(tempNotations);
+		
 		ArrayList<JButton> buttons = controlPanel.getButtons();
-		if(currentAction.equals("split") || currentAction.equals("join")) {
-			buttons.get(0).setEnabled(true);
-			buttons.get(1).setEnabled(true);
-			buttons.get(2).setEnabled(false);
-			buttons.get(3).setEnabled(false);
-		}
-		else {
-			buttons.get(0).setEnabled(false);
-			buttons.get(1).setEnabled(false);
-			buttons.get(2).setEnabled(true);
-			buttons.get(3).setEnabled(true);
-		}
+		buttons.get(0).setEnabled(true);
+		buttons.get(1).setEnabled(true);
+		buttons.get(2).setEnabled(false);
+		buttons.get(3).setEnabled(false);
+		
 		controlPanel.enableUndo(historyIndex > 0);
-		controlPanel.enableRedo(historyIndex < history.size() - 1);
+		controlPanel.enableRedo(historyIndex < moveNotations.size());
 		repaint();
 		board.repaint();
 		controlPanel.repaint();

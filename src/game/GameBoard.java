@@ -316,7 +316,6 @@ public class GameBoard extends JPanel {
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
 
-		crumbleGame.saveState();
 		this.repaint();
 	}
 
@@ -400,7 +399,6 @@ public class GameBoard extends JPanel {
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
 
-		crumbleGame.saveState();
 		this.repaint();
 	}
 
