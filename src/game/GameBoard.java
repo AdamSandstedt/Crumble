@@ -650,6 +650,8 @@ public class GameBoard extends JPanel {
 				else message = "White wins!";
 				JOptionPane.showMessageDialog(this, message, "Winner!", JOptionPane.INFORMATION_MESSAGE);
 				ArrayList<JButton> buttons = controlPanel.getButtons();
+				buttons.get(0).setEnabled(false);
+				buttons.get(1).setEnabled(false);
 				buttons.get(2).setEnabled(false);
 				buttons.get(3).setEnabled(false);
 				firstSelectionPiece = null;
@@ -888,7 +890,7 @@ public class GameBoard extends JPanel {
 		return yConversion;
 	}
 
-	public void doMove(String moveNotation) {
+	public void doMove(String moveNotation) {		
 		String swapNotation = null;
 		if(moveNotation.matches("[0-9]+(,[0-9]+)*V.*")) { // vertical split
 			splitDirection = false;
@@ -936,6 +938,12 @@ public class GameBoard extends JPanel {
 			else swapNotation = moveNotation.split("J[0-9]+(,[0-9]+)*")[1];
 			join();
 		}
+		
+		ArrayList<JButton> buttons = controlPanel.getButtons();
+		buttons.get(0).setEnabled(true);
+		buttons.get(1).setEnabled(true);
+		buttons.get(2).setEnabled(false);
+		buttons.get(3).setEnabled(false);
 
 		if(swapNotation.equals("")) {
 			firstSelectionPiece = null;
@@ -962,6 +970,7 @@ public class GameBoard extends JPanel {
 					if(neighbor.getBottomLeft().getX() == firstSelectionPiece.getBottomLeft().getX() && neighbor.getBottomLeft().getY() == firstSelectionPiece.getTopRight().getY()) {
 						secondSelectionPiece = neighbor;
 						swap();
+						break;
 					}
 				}
 				break;
@@ -970,6 +979,7 @@ public class GameBoard extends JPanel {
 					if(neighbor.getBottomLeft().getX() == firstSelectionPiece.getBottomLeft().getX() && neighbor.getTopRight().getY() == firstSelectionPiece.getBottomLeft().getY()) {
 						secondSelectionPiece = neighbor;
 						swap();
+						break;
 					}
 				}
 				break;
@@ -978,6 +988,7 @@ public class GameBoard extends JPanel {
 					if(neighbor.getBottomLeft().getY() == firstSelectionPiece.getBottomLeft().getY() && neighbor.getBottomLeft().getX() == firstSelectionPiece.getTopRight().getX()) {
 						secondSelectionPiece = neighbor;
 						swap();
+						break;
 					}
 				}
 				break;
@@ -986,21 +997,19 @@ public class GameBoard extends JPanel {
 					if(neighbor.getBottomLeft().getY() == firstSelectionPiece.getBottomLeft().getY() && neighbor.getTopRight().getX() == firstSelectionPiece.getBottomLeft().getX()) {
 						secondSelectionPiece = neighbor;
 						swap();
+						break;
 					}
 				}
 				break;
 			}
 		}
 
-		currentTurn = !currentTurn;
-		currentAction = "split";
-		firstSelectionPiece = null;
-		showStartPoint = true;
-		ArrayList<JButton> buttons = controlPanel.getButtons();
-		buttons.get(0).setEnabled(true);
-		buttons.get(1).setEnabled(true);
-		buttons.get(2).setEnabled(false);
-		buttons.get(3).setEnabled(false);
+		if(!swapStartPieces.isEmpty()) { // it will be empty if a player won
+			currentTurn = !currentTurn;
+			currentAction = "split";
+			firstSelectionPiece = null;
+			showStartPoint = true;
+		}
 		repaint();
 		if(currentTurn) controlPanel.setCurrentTurn("Black's");
 		else controlPanel.setCurrentTurn("White's");

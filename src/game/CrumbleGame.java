@@ -226,8 +226,13 @@ public class CrumbleGame extends JFrame {
 		controlPanel.reset();
 		pack();
 
+		int originalSize = moveNotations.size();
 		for(int i = 0; i < notations.size(); i++) {
 			board.doMove(notations.get(i));
+		}
+		while(moveNotations.size() > originalSize) {
+			moveNotations.remove(moveNotations.size() - 1);
+			historyIndex -= 1;
 		}
 	}
 
@@ -304,12 +309,6 @@ public class CrumbleGame extends JFrame {
 		
 		ArrayList<String> tempNotations = new ArrayList<>(moveNotations.subList(0, historyIndex));
 		loadGameFromNotations(tempNotations);
-		
-		ArrayList<JButton> buttons = controlPanel.getButtons();
-		buttons.get(0).setEnabled(true);
-		buttons.get(1).setEnabled(true);
-		buttons.get(2).setEnabled(false);
-		buttons.get(3).setEnabled(false);
 		
 		controlPanel.enableUndo(historyIndex > 0);
 		controlPanel.enableRedo(historyIndex < moveNotations.size());
