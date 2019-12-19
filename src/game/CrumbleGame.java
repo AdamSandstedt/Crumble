@@ -210,9 +210,9 @@ public class CrumbleGame extends JFrame {
 	            	newNotations.add(line);
 	            	line = br.readLine();
 	            }
-	            loadGameFromNotations(newNotations);
 	            moveNotations = newNotations;
 	            historyIndex = newNotations.size();
+	            loadGameFromNotations(newNotations);
 	            br.close();
 	        } catch (IOException e) {
 	            e.printStackTrace();
@@ -232,6 +232,9 @@ public class CrumbleGame extends JFrame {
 			moveNotations.remove(moveNotations.size() - 1);
 			historyIndex -= 1;
 		}
+		
+		controlPanel.enableUndo(historyIndex > 0);
+		controlPanel.enableRedo(historyIndex < moveNotations.size());
 	}
 
 	public int getNumRows() {
@@ -313,8 +316,6 @@ public class CrumbleGame extends JFrame {
 		ArrayList<String> tempNotations = new ArrayList<>(moveNotations.subList(0, historyIndex));
 		loadGameFromNotations(tempNotations);
 		
-		controlPanel.enableUndo(historyIndex > 0);
-		controlPanel.enableRedo(historyIndex < moveNotations.size());
 		repaint();
 		board.repaint();
 		controlPanel.repaint();
