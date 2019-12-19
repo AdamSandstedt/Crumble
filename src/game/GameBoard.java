@@ -73,6 +73,7 @@ public class GameBoard extends JPanel {
 		        xConversion = (double)boardWidth / numColumns;
 				yConversion = (double)boardHeight / numRows;
 		        board.boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, boardWidth, boardHeight);
+		        board.repaint();
 		    }
 		});
 
