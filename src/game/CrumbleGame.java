@@ -253,11 +253,15 @@ public class CrumbleGame extends JFrame {
 	public void setNumRows(int numRows) {
 		this.numRows = numRows;
 		setGameBoard(new GameBoard(this));
+		historyIndex = 0;
+		controlPanel.reset();
 	}
 
 	public void setNumColumns(int numColumns) {
 		this.numColumns = numColumns;
 		setGameBoard(new GameBoard(this));
+		historyIndex = 0;
+		controlPanel.reset();
 	}
 
 	private void setGameBoard(GameBoard gameBoard) {

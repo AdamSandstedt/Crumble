@@ -154,5 +154,7 @@ public class ControlPanel extends JPanel {
 		buttons.get(1).setEnabled(true);
 		buttons.get(2).setEnabled(false);
 		buttons.get(3).setEnabled(false);
+		enableUndo(false);
+		enableRedo(false);
 	}
 }
