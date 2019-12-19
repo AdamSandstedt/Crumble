@@ -221,11 +221,8 @@ public class CrumbleGame extends JFrame {
 	}
 
 	private void loadGameFromNotations(ArrayList<String> notations) {
-		this.remove(board);
-		board  = new GameBoard(this);
-		add(board, BorderLayout.CENTER);
+		setGameBoard(new GameBoard(this));
 		controlPanel.reset();
-		pack();
 
 		int originalSize = moveNotations.size();
 		for(int i = 0; i < notations.size(); i++) {
@@ -253,6 +250,7 @@ public class CrumbleGame extends JFrame {
 	public void setNumRows(int numRows) {
 		this.numRows = numRows;
 		setGameBoard(new GameBoard(this));
+		moveNotations.clear();
 		historyIndex = 0;
 		controlPanel.reset();
 	}
@@ -260,12 +258,12 @@ public class CrumbleGame extends JFrame {
 	public void setNumColumns(int numColumns) {
 		this.numColumns = numColumns;
 		setGameBoard(new GameBoard(this));
+		moveNotations.clear();
 		historyIndex = 0;
 		controlPanel.reset();
 	}
 
 	private void setGameBoard(GameBoard gameBoard) {
-		moveNotations.clear();
 		remove(board);
 		board = gameBoard;
 		add(board);
