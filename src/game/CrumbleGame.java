@@ -212,6 +212,7 @@ public class CrumbleGame extends JFrame {
 	            }
 	            loadGameFromNotations(newNotations);
 	            moveNotations = newNotations;
+	            historyIndex = newNotations.size();
 	            br.close();
 	        } catch (IOException e) {
 	            e.printStackTrace();
