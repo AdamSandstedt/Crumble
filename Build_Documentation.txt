@@ -1,0 +1,16 @@
+Instructions of how to build the project and run it.
+
+Command line instructions:
+1. Move to the project folder
+  This is done by using the cd (change directory) command.
+
+2. Compile the java source code
+  javac -cp src -d bin src/game/CrumbleGame.java (Mac/Linux) or
+  javac -cp src -d bin src\game\CrumbleGame.java (Windows)
+  "-cp src" tells java that all the source code can be found within the src directory
+  "-d bin" makes the compiled code go into the bin directory
+  "src/game/CrumbleGame.java" is the top level class. It uses all of the other classes, so by compiling it, everything else will be compiled as well
+
+3. Run the compiled code
+  java -cp bin game.CrumbleGame
+  "-cp bin" tells java that all the compiled code is in the bin directory
