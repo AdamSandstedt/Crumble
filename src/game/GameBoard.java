@@ -520,7 +520,7 @@ public class GameBoard extends JPanel {
 			for(GamePiece piece: gamePieces) {
 				if(p1.getY() < piece.getTopRight().getY() && p1.getY() > piece.getBottomLeft().getY() &&
 				   p1.getX() <= piece.getBottomLeft().getX() && p2.getX() >= piece.getTopRight().getX() &&
-				   (piece.canSplitHorizontal() && piece.getHorizontalSplitStart().getY() != p1.getY() || (piece.isColor() != currentTurn)) ) {
+				   (!piece.canSplitHorizontal() || piece.canSplitHorizontal() && piece.getHorizontalSplitStart().getY() != p1.getY() || (piece.isColor() != currentTurn)) ) {
 					splitIsValid = false;
 					break;
 				}
@@ -530,7 +530,7 @@ public class GameBoard extends JPanel {
 			for(GamePiece piece: gamePieces) {
 				if(p1.getX() < piece.getTopRight().getX() && p1.getX() > piece.getBottomLeft().getX() &&
 				   p1.getY() <= piece.getBottomLeft().getY() && p2.getY() >= piece.getTopRight().getY() &&
-				   (piece.canSplitVertical() && piece.getVerticalSplitStart().getX() != p1.getX() || (piece.isColor() != currentTurn)) ) {
+				   (!piece.canSplitVertical() || piece.canSplitVertical() && piece.getVerticalSplitStart().getX() != p1.getX() || (piece.isColor() != currentTurn)) ) {
 					splitIsValid = false;
 					break;
 				}
