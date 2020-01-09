@@ -1,5 +1,7 @@
 package game;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 
@@ -19,22 +21,33 @@ public class ControlPanel extends JPanel {
 	private JTextArea notationTextArea;
 
 	public ControlPanel() {
-		this.setLayout(new GridLayout(4,1));
-
+		this.setLayout(new GridBagLayout());
+		
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 0.05;
+		c.gridx = 0;
+		c.gridy = 0;
 		turnTextPanel = new TurnTextPanel();
-		add(turnTextPanel);
+		add(turnTextPanel, c);
 
+		c.gridy = 1;
+		c.weighty = 0.1;
 		undoRedoPanel = new UndoRedoPanel();
-		add(undoRedoPanel);
+		add(undoRedoPanel, c);
 
+		c.gridy = 2;
+		c.weighty = 0.2;
 		endTurnButton = new JButton("End Turn");
 		endTurnButton.setActionCommand("end turn");
 		endTurnButton.setEnabled(false);
-		add(endTurnButton);
+		add(endTurnButton, c);
 		
+		c.gridy = 3;
+		c.weighty = 1.0;
 		notationTextArea = new JTextArea();
 		notationTextArea.setEditable(false);
-		add(notationTextArea);
+		add(notationTextArea, c);
 	}
 
 	public UndoRedoPanel getUndoRedoPanel() {
