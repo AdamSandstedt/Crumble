@@ -309,11 +309,7 @@ public class GameBoard extends JPanel {
 
 		showJoinRect = false;
 		currentAction = "swap";
-		ArrayList<JButton> buttons = controlPanel.getButtons();
-		buttons.get(0).setEnabled(false);
-		buttons.get(1).setEnabled(false);
-		buttons.get(2).setEnabled(true);
-		buttons.get(3).setEnabled(true);
+		controlPanel.getEndTurnButton().setEnabled(true);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
 
@@ -392,11 +388,7 @@ public class GameBoard extends JPanel {
 
 		showSplitLine = false;
 		currentAction = "swap";
-		ArrayList<JButton> buttons = controlPanel.getButtons();
-		buttons.get(0).setEnabled(false);
-		buttons.get(1).setEnabled(false);
-		buttons.get(2).setEnabled(true);
-		buttons.get(3).setEnabled(true);
+		controlPanel.getEndTurnButton().setEnabled(true);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
 
@@ -438,37 +430,30 @@ public class GameBoard extends JPanel {
 		BoardPoint nearestPoint = null;
 		if(firstSelectionPoint == null) {
 			secondSelectionPoint = null;
-			switch(currentAction) {
-			case "split":
-				for(GamePiece piece: gamePieces) {
-					if(piece.isColor() == currentTurn) {
-						if(piece.canSplitHorizontal() && point.distanceSq(piece.getHorizontalSplitStart()) < minSquareDistance) {
-							splitDirection = true;
-							nearestPoint = piece.getHorizontalSplitStart();
-							minSquareDistance = point.distanceSq(piece.getHorizontalSplitStart());
+			for(GamePiece piece: gamePieces) {
+				if(piece.isColor() == currentTurn) {
+					if(piece.canSplitHorizontal() && point.distanceSq(piece.getHorizontalSplitStart()) < minSquareDistance) {
+						currentAction = "split";
+						splitDirection = true;
+						nearestPoint = piece.getHorizontalSplitStart();
+						minSquareDistance = point.distanceSq(piece.getHorizontalSplitStart());
+					}
+					if(piece.canSplitVertical() && point.distanceSq(piece.getVerticalSplitStart()) < minSquareDistance) {
+						currentAction = "split";
+						splitDirection = false;
+						nearestPoint = piece.getVerticalSplitStart();
+						minSquareDistance = point.distanceSq(piece.getVerticalSplitStart());
+					}
+					if(point.distanceSq(piece.getBottomLeft()) < minSquareDistance) {
+						currentAction = "join";
+						firstSelectionPoint = piece.getBottomLeft();
+						if(getNearestPoint(point) != null) {
+							nearestPoint = piece.getBottomLeft();
+							minSquareDistance = point.distanceSq(piece.getBottomLeft());
 						}
-						if(piece.canSplitVertical() && point.distanceSq(piece.getVerticalSplitStart()) < minSquareDistance) {
-							splitDirection = false;
-							nearestPoint = piece.getVerticalSplitStart();
-							minSquareDistance = point.distanceSq(piece.getVerticalSplitStart());
-						}
+						firstSelectionPoint = null;
 					}
 				}
-				break;
-			case "join":
-				for(GamePiece piece: gamePieces) {
-					if(piece.isColor() == currentTurn) {
-						if(point.distanceSq(piece.getBottomLeft()) < minSquareDistance) {
-							firstSelectionPoint = piece.getBottomLeft();
-							if(getNearestPoint(point) != null) {
-								nearestPoint = piece.getBottomLeft();
-								minSquareDistance = point.distanceSq(piece.getBottomLeft());
-							}
-							firstSelectionPoint = null;
-						}
-					}
-				}
-				break;
 			}
 		}
 		else {
@@ -650,11 +635,7 @@ public class GameBoard extends JPanel {
 				if(color) message = "Black wins!";
 				else message = "White wins!";
 				JOptionPane.showMessageDialog(this, message, "Winner!", JOptionPane.INFORMATION_MESSAGE);
-				ArrayList<JButton> buttons = controlPanel.getButtons();
-				buttons.get(0).setEnabled(false);
-				buttons.get(1).setEnabled(false);
-				buttons.get(2).setEnabled(false);
-				buttons.get(3).setEnabled(false);
+				controlPanel.getEndTurnButton().setEnabled(false);
 				firstSelectionPiece = null;
 				swapStartPieces.clear();
 				crumbleGame.addMove(currentMoveNotation);
@@ -713,42 +694,42 @@ public class GameBoard extends JPanel {
 	public ButtonListener getButtonListener() {
 		return buttonListener;
 	}
+	
+	private void setCurrentAction(String action) {
+		currentAction = action;
+		if(currentAction.equals("end turn")) {
+			crumbleGame.addMove(currentMoveNotation);
+			currentTurn = !currentTurn;
+			currentAction = "split";
+			firstSelectionPiece = null;
+			showStartPoint = true;
+			controlPanel.getEndTurnButton().setEnabled(false);
+			repaint();
+			if(currentTurn) controlPanel.setCurrentTurn("Black's");
+			else controlPanel.setCurrentTurn("White's");
+		}
+		else if(currentAction.equals("split") || currentAction.equals("join")) {
+			firstSelectionPoint = null;
+			secondSelectionPoint = null;
+			firstSelectionPiece = null;
+			secondSelectionPiece = null;
+			showSplitLine = false;
+			showJoinRect = false;
+			showStartPoint = true;
+			repaint();
+		}
+		else if(currentAction.equals("undo")) {
+			crumbleGame.loadState("undo");
+		}
+		else if(currentAction.equals("redo")) {
+			crumbleGame.loadState("redo");
+		}
+	}
 
 	class ButtonListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			currentAction = e.getActionCommand();
-			if(currentAction.equals("end turn")) {
-				crumbleGame.addMove(currentMoveNotation);
-				currentTurn = !currentTurn;
-				currentAction = "split";
-				firstSelectionPiece = null;
-				showStartPoint = true;
-				ArrayList<JButton> buttons = controlPanel.getButtons();
-				buttons.get(0).setEnabled(true);
-				buttons.get(1).setEnabled(true);
-				buttons.get(2).setEnabled(false);
-				buttons.get(3).setEnabled(false);
-				repaint();
-				if(currentTurn) controlPanel.setCurrentTurn("Black's");
-				else controlPanel.setCurrentTurn("White's");
-			}
-			else if(currentAction.equals("split") || currentAction.equals("join")) {
-				firstSelectionPoint = null;
-				secondSelectionPoint = null;
-				firstSelectionPiece = null;
-				secondSelectionPiece = null;
-				showSplitLine = false;
-				showJoinRect = false;
-				showStartPoint = true;
-				repaint();
-			}
-			else if(currentAction.equals("undo")) {
-				crumbleGame.loadState("undo");
-			}
-			else if(currentAction.equals("redo")) {
-				crumbleGame.loadState("redo");
-			}
+			setCurrentAction(e.getActionCommand());
 		}
 	}
 
@@ -940,11 +921,7 @@ public class GameBoard extends JPanel {
 			join();
 		}
 		
-		ArrayList<JButton> buttons = controlPanel.getButtons();
-		buttons.get(0).setEnabled(true);
-		buttons.get(1).setEnabled(true);
-		buttons.get(2).setEnabled(false);
-		buttons.get(3).setEnabled(false);
+		controlPanel.getEndTurnButton().setEnabled(false);
 
 		if(swapNotation.equals("")) {
 			firstSelectionPiece = null;

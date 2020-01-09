@@ -172,7 +172,7 @@ public class CrumbleGame extends JFrame {
 		controlPanel.enableUndo(true);
 		controlPanel.enableRedo(false);
 
-		System.out.println(currentMoveNotation);
+		controlPanel.setNotations(moveNotations);
 	}
 
 	public void saveFile() {
@@ -315,6 +315,8 @@ public class CrumbleGame extends JFrame {
 		
 		ArrayList<String> tempNotations = new ArrayList<>(moveNotations.subList(0, historyIndex));
 		loadGameFromNotations(tempNotations);
+		
+		controlPanel.setNotations(tempNotations);
 		
 		repaint();
 		board.repaint();

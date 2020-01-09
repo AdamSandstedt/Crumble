@@ -10,16 +10,16 @@ import javax.swing.JTextArea;
 import game.GameBoard.ButtonListener;
 
 public class ControlPanel extends JPanel {
-	private ArrayList<JButton> buttons;
 	private ButtonListener buttonListener;
 	private GameBoard gameBoard;
 	private CrumbleGame crumbleGame;
 	private TurnTextPanel turnTextPanel;
 	private UndoRedoPanel undoRedoPanel;
+	private JButton endTurnButton;
+	private JTextArea notationTextArea;
 
 	public ControlPanel() {
-		buttons = new ArrayList<>();
-		this.setLayout(new GridLayout(6,1));
+		this.setLayout(new GridLayout(4,1));
 
 		turnTextPanel = new TurnTextPanel();
 		add(turnTextPanel);
@@ -27,27 +27,14 @@ public class ControlPanel extends JPanel {
 		undoRedoPanel = new UndoRedoPanel();
 		add(undoRedoPanel);
 
-		JButton button = new JButton("Split");
-		button.setActionCommand("split");
-		buttons.add(button);
-
-		button = new JButton("Join");
-		button.setActionCommand("join");
-		buttons.add(button);
-
-		button = new JButton("Swap");
-		button.setActionCommand("swap");
-		button.setEnabled(false);
-		buttons.add(button);
-
-		button = new JButton("End Turn");
-		button.setActionCommand("end turn");
-		button.setEnabled(false);
-		buttons.add(button);
-
-		for(int i = 0; i < buttons.size(); i++) {
-			add(buttons.get(i));
-		}
+		endTurnButton = new JButton("End Turn");
+		endTurnButton.setActionCommand("end turn");
+		endTurnButton.setEnabled(false);
+		add(endTurnButton);
+		
+		notationTextArea = new JTextArea();
+		notationTextArea.setEditable(false);
+		add(notationTextArea);
 	}
 
 	public UndoRedoPanel getUndoRedoPanel() {
@@ -61,9 +48,7 @@ public class ControlPanel extends JPanel {
 		if(gameBoard != null) {
 			gameBoard.setControlPanel(this);
 			this.buttonListener = gameBoard.getButtonListener();
-			for(JButton button: buttons) {
-				button.addActionListener(buttonListener);
-			}
+			endTurnButton.addActionListener(buttonListener);
 			undoRedoPanel.getUndoButton().addActionListener(buttonListener);
 			undoRedoPanel.getRedoButton().addActionListener(buttonListener);
 		}
@@ -73,8 +58,8 @@ public class ControlPanel extends JPanel {
 		turnTextPanel.setCurrentTurn(currentTurn);
 	}
 
-	public ArrayList<JButton> getButtons() {
-		return buttons;
+	public JButton getEndTurnButton() {
+		return endTurnButton;
 	}
 
 	public void setGameBoard(GameBoard gameBoard) {
@@ -85,13 +70,9 @@ public class ControlPanel extends JPanel {
 	}
 
 	public void setButtonListener(ButtonListener buttonListener) {
-		for(JButton button: buttons) {
-			button.removeActionListener(this.buttonListener);
-		}
+		endTurnButton.removeActionListener(this.buttonListener);
 		this.buttonListener = buttonListener;
-		for(JButton button: buttons) {
-			button.addActionListener(buttonListener);
-		}
+		endTurnButton.addActionListener(buttonListener);
 	}
 
 	public void enableUndo(Boolean b) {
@@ -150,11 +131,16 @@ public class ControlPanel extends JPanel {
 
 	public void reset() {
 		setCurrentTurn("Black");
-		buttons.get(0).setEnabled(true);
-		buttons.get(1).setEnabled(true);
-		buttons.get(2).setEnabled(false);
-		buttons.get(3).setEnabled(false);
+		endTurnButton.setEnabled(false);
 		enableUndo(false);
 		enableRedo(false);
+	}
+
+	public void setNotations(ArrayList<String> moveNotations) {
+		notationTextArea.setText("");
+		for(String notation: moveNotations) {
+			notationTextArea.append(notation + System.lineSeparator());
+		}
+		repaint();
 	}
 }
