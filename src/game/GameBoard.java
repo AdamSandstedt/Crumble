@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -17,9 +18,11 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import javax.swing.JButton;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 public class GameBoard extends JPanel {
 	private Set<GamePiece> gamePieces;
@@ -75,6 +78,54 @@ public class GameBoard extends JPanel {
 		        board.boardOutline = new Rectangle(GamePiece.X_OFFSET, GamePiece.Y_OFFSET, boardWidth, boardHeight);
 		        board.repaint();
 		    }
+		});
+		
+		KeyStroke keyStroke = KeyStroke.getKeyStroke("released ENTER");
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "enter");
+		this.getActionMap().put("enter", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setCurrentAction("end turn");
+			}
+		});
+		
+		keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_KP_LEFT, 0, true);
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "left");
+		keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, true);
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "left");
+		keyStroke = KeyStroke.getKeyStroke("control released Z");
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "left");
+		keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0, true);
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "left");
+		this.getActionMap().put("left", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				crumbleGame.loadState("undo");
+			}
+		});
+		
+		keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_KP_RIGHT, 0, true);
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "right");
+		keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, true);
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "right");
+		keyStroke = KeyStroke.getKeyStroke("control released Y");
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "right");
+		keyStroke = KeyStroke.getKeyStroke("control shift released Z");
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "right");
+		this.getActionMap().put("right", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				crumbleGame.loadState("redo");
+			}
+		});
+		
+		keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, true);
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "escape");
+		this.getActionMap().put("escape", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(!currentAction.equals("swap")) setCurrentAction("split");
+			}
 		});
 
 	}
@@ -697,7 +748,7 @@ public class GameBoard extends JPanel {
 	
 	private void setCurrentAction(String action) {
 		currentAction = action;
-		if(currentAction.equals("end turn")) {
+		if(currentAction.equals("end turn") && controlPanel.getEndTurnButton().isEnabled()) {
 			crumbleGame.addMove(currentMoveNotation);
 			currentTurn = !currentTurn;
 			currentAction = "split";
