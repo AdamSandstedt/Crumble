@@ -31,7 +31,7 @@ public class CrumbleGame extends JFrame {
 	private JFileChooser fileChooser;
 	private int numRows = 0;
 	private int numColumns = 0;
-  private int historyIndex;
+	private int historyIndex;
 
 	public CrumbleGame() {
 		moveNotations = new ArrayList<>();
@@ -69,7 +69,7 @@ public class CrumbleGame extends JFrame {
 		controlPanel = new ControlPanel(this);
 		add(controlPanel, BorderLayout.EAST);
 
-    historyIndex = 0;
+		historyIndex = 0;
     
 		this.pack();
 		setVisible(true);
