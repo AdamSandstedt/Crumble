@@ -7,8 +7,6 @@ The game is completely playable but there are still some features that I would l
 For help with building/running the game, look at the Build_Documentation.txt file
 
 To do:
-add keyboard shortcuts
-Display the move notations for the previous moves
 Input using move notations instead of clicking
 Add a zoom feature
 Add alphabeta engine
