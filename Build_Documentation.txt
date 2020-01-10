@@ -12,5 +12,5 @@ Command line instructions:
   "src/game/CrumbleGame.java" is the top level class. It uses all of the other classes, so by compiling it, everything else will be compiled as well
 
 3. Run the compiled code
-  java -cp bin game.CrumbleGame
-  "-cp bin" tells java that all the compiled code is in the bin directory
+  java -cp bin:src game.CrumbleGame
+  "-cp bin:src" tells java that all the compiled code is in the bin directory, and the data files are in src
