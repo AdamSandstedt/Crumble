@@ -92,6 +92,7 @@ public class CrumbleGame extends JFrame {
 		Menu file;
 		Menu edit;
 		Menu view;
+		Menu help;
 
 		public CrumbleMenuBar() {
 			menuBarListener = new MenuBarListener();
@@ -103,6 +104,9 @@ public class CrumbleGame extends JFrame {
 
 			view = createViewMenu();
 			add(view);
+			
+			help = createHelpMenu();
+			add(help);
 		}
 
 		private Menu createFileMenu() {
@@ -142,6 +146,22 @@ public class CrumbleGame extends JFrame {
 
 			return menu;
 		}
+		
+		private Menu createHelpMenu() {
+			Menu menu = new Menu("Help");
+
+			MenuItem item = new MenuItem("How to play");
+			item.setActionCommand("how to play");
+			item.addActionListener(menuBarListener);
+			menu.add(item);
+
+			item = new MenuItem("Keyboard shortcuts");
+			item.setActionCommand("keyboard shortcuts");
+			item.addActionListener(menuBarListener);
+			menu.add(item);
+
+			return menu;
+		}
 	}
 
 	public class MenuBarListener implements ActionListener {
@@ -160,6 +180,12 @@ public class CrumbleGame extends JFrame {
 			}
 			else if(action.equals("edit_board_size")) {
 				editBoardSize();
+			}
+			else if(action.equals("how to play")) {
+				showGameInstructions();
+			}
+			else if(action.equals("keyboard shortcuts")) {
+				showKeyboardShortcuts();
 			}
 		}
 
@@ -330,6 +356,16 @@ public class CrumbleGame extends JFrame {
 		else if(action.equals("redo")) {
 			loadState(historyIndex + 1);
 		}
+	}
+	
+	public void showGameInstructions() {
+		// TODO: Add a window with game instructions
+		System.out.println("TODO: Add a window with game instructions");
+	}
+	
+	public void showKeyboardShortcuts() {
+		// TODO: Add a window with all the keyboard shortcuts
+		System.out.println("TODO: Add a window with all the keyboard shortcuts");
 	}
 
 }
