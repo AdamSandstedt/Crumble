@@ -12,6 +12,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import javax.swing.*;
@@ -359,13 +362,61 @@ public class CrumbleGame extends JFrame {
 	}
 	
 	public void showGameInstructions() {
-		// TODO: Add a window with game instructions
-		System.out.println("TODO: Add a window with game instructions");
+		InstructionsDialog dialog = new InstructionsDialog();
+		dialog.setVisible(true);
+	}
+	
+	public class InstructionsDialog extends JDialog {
+		public InstructionsDialog() {
+			JTextArea rules = new JTextArea();
+			rules.setLineWrap(true);
+			try {
+				InputStream is = this.getClass().getResourceAsStream("/data/rules.txt");
+				BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+				try {
+					String line;
+					while((line=reader.readLine()) != null) {
+						rules.append(line + System.lineSeparator());
+					}
+				} finally {
+					reader.close();
+				}
+			} catch(IOException e) {
+				System.out.println(e.getMessage());
+			}
+			add(rules);
+			
+			this.setSize(900, 700);
+		}
 	}
 	
 	public void showKeyboardShortcuts() {
-		// TODO: Add a window with all the keyboard shortcuts
-		System.out.println("TODO: Add a window with all the keyboard shortcuts");
+		KeyboardShortcutsDialog dialog = new KeyboardShortcutsDialog();
+		dialog.setVisible(true);
+	}
+	
+	public class KeyboardShortcutsDialog extends JDialog {
+		public KeyboardShortcutsDialog() {
+			JTextArea shortcuts = new JTextArea();
+			shortcuts.setLineWrap(true);
+			try {
+				InputStream is = this.getClass().getResourceAsStream("/data/keyboard_shortcuts.txt");
+				BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+				try {
+					String line;
+					while((line=reader.readLine()) != null) {
+						shortcuts.append(line + System.lineSeparator());
+					}
+				} finally {
+					reader.close();
+				}
+			} catch(IOException e) {
+				System.out.println(e.getMessage());
+			}
+			add(shortcuts);
+			
+			this.setSize(300, 300);
+		}
 	}
 
 }

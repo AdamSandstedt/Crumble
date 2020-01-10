@@ -1,0 +1,11 @@
+End turn:
+Enter/Return
+
+Cancel split/join:
+Escape
+
+Undo move:
+Left arrow, backspace, ctrl z
+
+Redo move:
+Right arrow, ctrl y, ctrl shift z

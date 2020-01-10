@@ -1,0 +1,22 @@
+Rules
+Crumble is a turn-based strategy game for 2 players. The first player controls the black pieces, the second controls the white. Each player tries to connect their own pieces together in chains of neighbors. A player wins if one of their chains touches all four sides of the game board at the same time.
+Each piece must be either a perfect square, or a rectangle that's a perfect half-square.
+
+Taking Your Turn
+When it's your turn, you have the choice to do either a split or a join, as described below. You can't pass your turn, so you have to choose one or the other. After you've done the join or split, you can choose either to end your turn right there, or to swap the color of one of your pieces with the color of one of your opponent's pieces, as described below. Use your turn to try to make your own chains of neighboring pieces longer and less vulnerable to being broken up, and to shorten those of your opponent.
+Splitting: You can split a square in either direction, but must split a rectangle into two squares. A single straight cut can split as many of your pieces as you want. The cut can run along existing edges, even of your opponent's pieces.
+Joining: Any of your pieces with a square outline can become a square. Any of your pieces with a half-square rectangle outline can become a rectangle.
+
+Swapping
+On your turn, after you've performed a split or join, you have the option to perform a swap. This involves changing one and only one of your freshly split or joined pieces to your opponent's color, and changing one and only one of your opponent's pieces to your color. We call this 'swapping into' your opponent's piece.
+When two corners of one piece touch two corners of another piece, we call those 'two-point' neighbors. Your piece may swap through any number of your opponent's pieces, so long as they are all two-point neighbors.
+
+Things That Can Happen While Swapping
+Whenever you swap, each step you take along the swapping path is treated as a swap of its own, that changes the configuration of color on the board. If one of those steps wins the game for either player, then the turn ends and the game is over.
+Each step can also result in either player's pieces being 'captured' if they are surrounded by opposing pieces that neighbor each other in a ring around the pieces to be captured. See the top of this document for an explanation of what a neighbor is. Captured pieces take on the color of the pieces that captured them.
+It's also worth noting that pieces must be fully surrounded in order to be captured. If one or more pieces are surrounded against the edge of the board, there is no capture.
+
+Drawn Games
+Both players may agree at any time to declare a game drawn. But there is also one situation where a game is automatically drawn: if all the pieces that each player has split or joined on their most recent turn were also involved in splits or joins on that player's previous two turns, and if both sides have swapped into the same piece on the most recent turn and the previous two turns, then the game is declared a draw.
+
+This document is based on the rules found at http://www.playcrumble.com/rules
