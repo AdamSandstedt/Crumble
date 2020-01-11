@@ -264,6 +264,7 @@ public class CrumbleGame extends JFrame {
 		
 		controlPanel.enableUndo(historyIndex > 0);
 		controlPanel.enableRedo(historyIndex < moveNotations.size());
+		controlPanel.setNotations(notations);
 	}
 
 	public int getNumRows() {
@@ -344,9 +345,7 @@ public class CrumbleGame extends JFrame {
 		
 		ArrayList<String> tempNotations = new ArrayList<>(moveNotations.subList(0, historyIndex));
 		loadGameFromNotations(tempNotations);
-		
-		controlPanel.setNotations(tempNotations);
-		
+				
 		repaint();
 		board.repaint();
 		controlPanel.repaint();
