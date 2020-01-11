@@ -279,7 +279,7 @@ public class GameBoard extends JPanel {
 				else currentMoveNotation += "E-";
 			}
 		}
-		else if(currentMoveNotation.matches(".(,.)*H[0-9]*")) { //First swap after a horizontal split
+		else if(currentMoveNotation.matches("[0-9]+(,[0-9]+)*H[0-9]*")) { //First swap after a horizontal split
 			GamePiece originalSplitPiece = null;
 			if(piecesToSplit.size() > 1) {
 				int piecesSplitLeft = 0;
