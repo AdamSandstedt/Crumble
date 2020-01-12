@@ -254,7 +254,7 @@ public class CrumbleGame extends JFrame {
 		controlPanel.reset();
 
 		int originalSize = moveNotations.size();
-		for(int i = 0; i < notations.size(); i++) {
+		for(int i = 0; i < notations.size() && i < originalSize; i++) {
 			board.doMove(notations.get(i));
 		}
 		while(moveNotations.size() > originalSize) {
