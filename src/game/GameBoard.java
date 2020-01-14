@@ -124,7 +124,7 @@ public class GameBoard extends JPanel {
 		this.getActionMap().put("escape", new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(!currentAction.equals("swap")) setCurrentAction("split");
+				if(!currentAction.equals("swap") && !currentAction.equals("end turn")) setCurrentAction("split");
 			}
 		});
 
@@ -1038,6 +1038,9 @@ public class GameBoard extends JPanel {
 			currentAction = "split";
 			firstSelectionPiece = null;
 			showStartPoint = true;
+		}
+		else {
+			showStartPoint = false;
 		}
 		repaint();
 		if(currentTurn) controlPanel.setCurrentTurn("Black's");
