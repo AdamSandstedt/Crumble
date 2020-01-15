@@ -447,11 +447,14 @@ public class GameBoard extends JPanel {
 	}
 
 	private void updateBoardPoints() {
+		BoardPoint bottomRight = boardPoints.get(new BoardPoint(numColumns,0,this));
+		if(bottomRight == null) bottomRight = new BoardPoint(numColumns,0,this);
 		boardPoints.clear();
 		for(GamePiece piece: gamePieces) {
 			boardPoints.put(piece.getBottomLeft(), piece.getBottomLeft());
 			boardPoints.put(piece.getTopRight(), piece.getTopRight());
 		}
+		boardPoints.put(bottomRight, bottomRight);
 	}
 
 	private int getNumPointsBetween(GamePiece bottomLeft, GamePiece topRight) {
