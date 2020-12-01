@@ -34,20 +34,20 @@ public class GamePiece {
 		double height = topRight.getY()-bottomLeft.getY();
 		if(width == height) {
 			shape = "square";
-			horizontalSplitStart = new BoardPoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2, board);
-			verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY(), board);
-			horizontalSplitEnd = new BoardPoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2, board);
-			verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY(), board);
+			horizontalSplitStart = BoardPoint.makePoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2);
+			verticalSplitStart = BoardPoint.makePoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY());
+			horizontalSplitEnd = BoardPoint.makePoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2);
+			verticalSplitEnd = BoardPoint.makePoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY());
 		}
 		else if(height == 2*width) {
 			shape = "tall";
-			horizontalSplitStart = new BoardPoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2, board);
-			horizontalSplitEnd = new BoardPoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2, board);
+			horizontalSplitStart = BoardPoint.makePoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2);
+			horizontalSplitEnd = BoardPoint.makePoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2);
 		}
 		else {
 			shape = "wide";
-			verticalSplitEnd = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY(), board);
-			verticalSplitStart = new BoardPoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY(), board);
+			verticalSplitEnd = BoardPoint.makePoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY());
+			verticalSplitStart = BoardPoint.makePoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY());
 		}
 		neighbors = new HashSet<GamePiece>();
 		for(GamePiece piece: gamePieces) {
@@ -203,8 +203,7 @@ public class GamePiece {
 	}
 
 	public boolean contains(Point p) {
-		BoardPoint bp = new BoardPoint(p, board);
-		return contains(bp);
+		return contains(BoardPoint.makeTempPoint(p, board));
 	}
 
 	public boolean contains(BoardPoint p) {

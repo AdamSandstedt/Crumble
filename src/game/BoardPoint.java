@@ -1,20 +1,20 @@
 package game;
 
 import java.awt.Point;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BoardPoint {
-	private double x;
-	private double y;
-	private GameBoard board;
+	private final double x;
+	private final double y;
+	private static final Map<BoardPoint, BoardPoint> boardPoints = new HashMap<>();
 	
-	BoardPoint(double x, double y, GameBoard board) {
+	private BoardPoint(double x, double y) {
 		this.x = x;
 		this.y = y;
-		this.board = board;
 	}
 	
-	BoardPoint(Point p, GameBoard board) {
-		this.board = board;
+	private BoardPoint(Point p, GameBoard board) {
 		if(p != null) {
 			this.x = ((double)p.x - GamePiece.X_OFFSET)/board.getxConversion();
 			this.y = ((double)GamePiece.Y_OFFSET + board.getBoardHeight() - p.y)/board.getyConversion();
@@ -23,6 +23,34 @@ public class BoardPoint {
 			this.x = 0;
 			this.y = 0;
 		}
+	}
+	
+	public static BoardPoint makePoint(double x, double y) {
+		BoardPoint tmp = new BoardPoint(x, y);
+		BoardPoint p = boardPoints.get(tmp);
+		if(p == null) {
+			boardPoints.put(tmp, tmp);
+			return tmp;
+		} else {
+			return p;
+		}
+	}
+	
+	public static BoardPoint makePoint(Point p, GameBoard board) {
+		if(p != null) {
+			return makePoint(((double)p.x - GamePiece.X_OFFSET)/board.getxConversion(), ((double)GamePiece.Y_OFFSET + board.getBoardHeight() - p.y)/board.getyConversion());
+		}
+		else {
+			return makePoint(0, 0);
+		}
+	}
+	
+	public static BoardPoint makeTempPoint(double x, double y) {
+		return new BoardPoint(x, y);
+	}
+	
+	public static BoardPoint makeTempPoint(Point p, GameBoard board) {
+		return new BoardPoint(p, board);
 	}
 
 	public double getX() {
@@ -57,7 +85,7 @@ public class BoardPoint {
 		return dx*dx + dy*dy;
 	}
 	
-	public Point toPoint() {
+	public Point toPoint(GameBoard board) {
 		return new Point((int)(GamePiece.X_OFFSET+board.getxConversion()*x), (int)(board.getBoardHeight()+GamePiece.Y_OFFSET-board.getyConversion()*y));
 	}
 	

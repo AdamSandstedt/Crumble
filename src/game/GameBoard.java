@@ -54,7 +54,7 @@ public class GameBoard extends JPanel {
 	private double xConversion;
 	private double yConversion;
 
-	GameBoard() {
+	public GameBoard() {
 		gamePieces = new HashSet<>();
 		swapStartPieces = new HashSet<>();
 		chains = new HashSet<>();
@@ -164,7 +164,7 @@ public class GameBoard extends JPanel {
 		gamePieces.clear();
 		for(int x = 0; x <= numColumns; x++) {
 			for(int y = 0; y <= numRows; y++) {
-				BoardPoint newPoint = new BoardPoint(x, y, this);
+				BoardPoint newPoint = BoardPoint.makePoint(x, y);
 				boardPoints.put(newPoint, newPoint);
 			}
 		}
@@ -201,7 +201,7 @@ public class GameBoard extends JPanel {
 	}
 
 	private BoardPoint getPointAt(double x, double y) {
-		return boardPoints.get(new BoardPoint(x, y, this));
+		return boardPoints.get(BoardPoint.makePoint(x, y));
 	}
 
 	@Override
@@ -217,39 +217,39 @@ public class GameBoard extends JPanel {
 		Graphics2D g2 = (Graphics2D) g;
 		g.drawRect(boardOutline.x, boardOutline.y, boardOutline.width, boardOutline.height);
 		if(showStartPoint) {
-			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition, this));
+			BoardPoint p = getNearestPoint(BoardPoint.makeTempPoint(mousePosition, this));
 			if(p != null) {
 				g2.setColor(Color.red);
-				g2.fillRect(p.toPoint().x, p.toPoint().y, 5, 5);
+				g2.fillRect(p.toPoint(this).x, p.toPoint(this).y, 5, 5);
 			}
 		}
 		else if(showSplitLine) {
-			int x1 = firstSelectionPoint.toPoint().x;
-			int y1 = firstSelectionPoint.toPoint().y;
-			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition, this));
-			int x2 = p.toPoint().x;
-			int y2 = p.toPoint().y;
+			int x1 = firstSelectionPoint.toPoint(this).x;
+			int y1 = firstSelectionPoint.toPoint(this).y;
+			BoardPoint p = getNearestPoint(BoardPoint.makeTempPoint(mousePosition, this));
+			int x2 = p.toPoint(this).x;
+			int y2 = p.toPoint(this).y;
 			g2.setColor(Color.red);
 			g2.setStroke(new BasicStroke(4));
 			g2.drawLine(x1, y1, x2, y2);
 		}
 		else if(showJoinRect) {
-			BoardPoint p = getNearestPoint(new BoardPoint(mousePosition, this));
+			BoardPoint p = getNearestPoint(BoardPoint.makeTempPoint(mousePosition, this));
 			if(p != null) {
-				int x1 = firstSelectionPoint.toPoint().x;
-				int y1 = p.toPoint().y;
-				int width = p.toPoint().x - x1;
-				int height = firstSelectionPoint.toPoint().y - y1;
+				int x1 = firstSelectionPoint.toPoint(this).x;
+				int y1 = p.toPoint(this).y;
+				int width = p.toPoint(this).x - x1;
+				int height = firstSelectionPoint.toPoint(this).y - y1;
 				g2.setColor(Color.red);
 				g2.setStroke(new BasicStroke(4));
 				g2.drawRect(x1, y1, width, height);
 			}
 		}
 		else if(firstSelectionPiece != null) {
-			int x1 = firstSelectionPiece.getBottomLeft().toPoint().x;
-			int y1 = firstSelectionPiece.getTopRight().toPoint().y;
-			int x2 = firstSelectionPiece.getTopRight().toPoint().x;
-			int y2 = firstSelectionPiece.getBottomLeft().toPoint().y;
+			int x1 = firstSelectionPiece.getBottomLeft().toPoint(this).x;
+			int y1 = firstSelectionPiece.getTopRight().toPoint(this).y;
+			int x2 = firstSelectionPiece.getTopRight().toPoint(this).x;
+			int y2 = firstSelectionPiece.getBottomLeft().toPoint(this).y;
 			g2.setColor(Color.red);
 			g2.setStroke(new BasicStroke(4));
 			g2.drawRect(x1, y1, x2-x1, y2-y1);
@@ -447,8 +447,8 @@ public class GameBoard extends JPanel {
 	}
 
 	private void updateBoardPoints() {
-		BoardPoint bottomRight = boardPoints.get(new BoardPoint(numColumns,0,this));
-		if(bottomRight == null) bottomRight = new BoardPoint(numColumns,0,this);
+		BoardPoint bottomRight = boardPoints.get(BoardPoint.makePoint(numColumns,0));
+		if(bottomRight == null) bottomRight = BoardPoint.makePoint(numColumns,0);
 		boardPoints.clear();
 		for(GamePiece piece: gamePieces) {
 			boardPoints.put(piece.getBottomLeft(), piece.getBottomLeft());
@@ -801,7 +801,7 @@ public class GameBoard extends JPanel {
 		public void mousePressed(MouseEvent e) {
 			Point p = e.getPoint();
 			if(boardOutline.contains(p)) {
-				BoardPoint click = new BoardPoint(p, board);
+				BoardPoint click = BoardPoint.makeTempPoint(p, board);
 				if(currentAction.equals("split") || currentAction.equals("join")) {
 					if(firstSelectionPoint == null) {
 						firstSelectionPoint = getNearestPoint(click);
@@ -886,7 +886,7 @@ public class GameBoard extends JPanel {
 	private void updateNotations() {
 		LinkedList<GamePiece> queue = new LinkedList<>();
 		for(GamePiece piece: gamePieces) {
-			if(piece.getBottomLeft().equals(new BoardPoint(0, 0, this))) queue.add(piece);
+			if(piece.getBottomLeft().equals(BoardPoint.makePoint(0, 0))) queue.add(piece);
 			piece.setNotation(null);
 		}
 		queue.peek().setNotation(new Notation(0));
