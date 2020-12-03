@@ -53,6 +53,9 @@ public class GameBoard extends JPanel {
 	private final double smallestHeight = Math.pow(2,-10);
 	private double xConversion;
 	private double yConversion;
+	private Map<GamePiece, Notation> pieceNotations;
+	private Map<GamePiece, Set<GamePiece> > pieceNeighbors;
+	private Map<GamePiece, Set<GamePiece> > piecesSurrounding;
 
 	public GameBoard() {
 		gamePieces = new HashSet<>();
@@ -62,6 +65,9 @@ public class GameBoard extends JPanel {
 		boardPoints = new HashMap<>();
 		piecesToSplit = new HashSet<>();
 		gamePieceAt = new HashMap<>();
+		pieceNotations = new HashMap<>();
+		pieceNeighbors = new HashMap<>();
+		piecesSurrounding = new HashMap<>();
 
 		setPreferredSize(new Dimension(boardWidth+GamePiece.X_OFFSET*2, boardHeight+GamePiece.Y_OFFSET*2));
 		addMouseListener(new BoardMouseListener(this));
@@ -172,7 +178,8 @@ public class GameBoard extends JPanel {
 			for(int y = 0; y < numRows; y++) {
 				if(y == 0) notation = new Notation(x);
 				else notation = new Notation(x, y);
-				newPiece = new GamePiece(color, getPointAt(x, y), getPointAt(x+1,y+1), notation, gamePieces, this);
+				newPiece = GamePiece.makePiece(color, getPointAt(x, y), getPointAt(x+1,y+1), gamePieces, pieceNeighbors, piecesSurrounding, pieceNotations, notation);
+				pieceNotations.put(newPiece, notation);
 				gamePieceAt.put(getPointAt(x, y), newPiece);
 				Set<GamePiece> newChain = new HashSet<>();
 				newChain.add(newPiece);
@@ -208,7 +215,7 @@ public class GameBoard extends JPanel {
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		for(GamePiece piece: gamePieces) {
-			piece.draw(g);
+			piece.draw(g, this, pieceNotations.get(piece));
 		}
 		this.draw(g);
 	}
@@ -309,9 +316,21 @@ public class GameBoard extends JPanel {
 		if(firstSelectionPiece.getBottomLeft().getY() > secondSelectionPiece.getBottomLeft().getY()) {
 			currentMoveNotation += 'S';
 		}
-		firstSelectionPiece.setColor(!firstSelectionPiece.isColor());
+		GamePiece tmp = firstSelectionPiece.oppositeColorPiece(gamePieces, pieceNeighbors, piecesSurrounding, pieceNotations, chains);
+		Set<GamePiece> chain = findChain(firstSelectionPiece);
+		chain.remove(firstSelectionPiece);
+		gamePieces.remove(firstSelectionPiece);
+		chain.add(tmp);
+		gamePieces.add(tmp);
+		firstSelectionPiece = tmp;
 		updateChain(firstSelectionPiece);
-		secondSelectionPiece.setColor(!secondSelectionPiece.isColor());
+		tmp = secondSelectionPiece.oppositeColorPiece(gamePieces, pieceNeighbors, piecesSurrounding, pieceNotations, chains);
+		chain = findChain(secondSelectionPiece);
+		chain.remove(secondSelectionPiece);
+		gamePieces.remove(secondSelectionPiece);
+		chain.add(tmp);
+		gamePieces.add(tmp);
+		secondSelectionPiece = tmp;
 		updateChain(secondSelectionPiece);
 
 		firstSelectionPiece = secondSelectionPiece;
@@ -332,8 +351,8 @@ public class GameBoard extends JPanel {
 			if(piece.getTopRight().equals(secondSelectionPoint)) p2 = piece;
 		}
 		BoardPoint bottomRight = getPointAt(p2.getTopRight().getX(), p1.getBottomLeft().getY());
-		currentMoveNotation = p1.getNotation().toString() + 'J' + (1 + getNumPointsBetween(p1.getBottomLeft(), bottomRight)) + "," + (1 + getNumPointsBetween(bottomRight, p2.getTopRight()));
-		GamePiece newPiece = new GamePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), p1.getNotation(), gamePieces, this);
+		currentMoveNotation = pieceNotations.get(p1).toString() + 'J' + (1 + getNumPointsBetween(p1.getBottomLeft(), bottomRight)) + "," + (1 + getNumPointsBetween(bottomRight, p2.getTopRight()));
+		GamePiece newPiece = GamePiece.makePiece(p1.isColor(), p1.getBottomLeft(), p2.getTopRight(), gamePieces, pieceNeighbors, piecesSurrounding, pieceNotations, pieceNotations.get(p1));
 		for(GamePiece piece: gamePieces) {
 			if(newPiece.contains(piece)) {
 				piecesToJoin.add(piece);
@@ -343,11 +362,11 @@ public class GameBoard extends JPanel {
 		for(GamePiece piece: piecesToJoin) {
 			gamePieces.remove(piece);
 			gamePieceAt.remove(piece.getBottomLeft());
-			for(GamePiece neighbor: piece.getNeighbors()) {
-				neighbor.getNeighbors().remove(piece);
+			for(GamePiece neighbor: pieceNeighbors.get(piece)) {
+				pieceNeighbors.get(neighbor).remove(piece);
 			}
-			for(GamePiece surrounding: piece.getSurrounding()) {
-				surrounding.getSurrounding().remove(piece);
+			for(GamePiece surrounding: piecesSurrounding.get(piece)) {
+				piecesSurrounding.get(surrounding).remove(piece);
 			}
 			chain.remove(piece);
 		}
@@ -375,26 +394,26 @@ public class GameBoard extends JPanel {
 				if(piece.canSplitHorizontal() && firstSelectionPoint.getY() == piece.getHorizontalSplitStart().getY() &&
 				   firstSelectionPoint.getX() <= piece.getBottomLeft().getX() && secondSelectionPoint.getX() >= piece.getTopRight().getX()) {
 					piecesToSplit.add(piece);
-					if(firstSelectionPoint == piece.getHorizontalSplitStart()) currentMoveNotation = piece.getNotation().toString() + "H";
+					if(firstSelectionPoint == piece.getHorizontalSplitStart()) currentMoveNotation = pieceNotations.get(piece).toString() + "H";
 				}
 			}
 			if(piecesToSplit.size() > 1) currentMoveNotation += piecesToSplit.size();
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
 				gamePieceAt.remove(piece.getBottomLeft());
-				for(GamePiece neighbor: piece.getNeighbors()) {
-					neighbor.getNeighbors().remove(piece);
+				for(GamePiece neighbor: pieceNeighbors.get(piece)) {
+					pieceNeighbors.get(neighbor).remove(piece);
 				}
-				for(GamePiece surrounding: piece.getSurrounding()) {
-					surrounding.getSurrounding().remove(piece);
+				for(GamePiece surrounding: piecesSurrounding.get(piece)) {
+					piecesSurrounding.get(surrounding).remove(piece);
 				}
 				Set<GamePiece> chain = findChain(piece);
 				chain.remove(piece);
-				GamePiece newPieceBottom = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), piece.getNotation(), gamePieces, this);
+				GamePiece newPieceBottom = GamePiece.makePiece(piece.isColor(), piece.getBottomLeft(), piece.getHorizontalSplitEnd(), gamePieces, pieceNeighbors, piecesSurrounding, pieceNotations, pieceNotations.get(piece));
 				gamePieces.add(newPieceBottom);
 				gamePieceAt.put(newPieceBottom.getBottomLeft(), newPieceBottom);
 				chain.add(newPieceBottom);
-				GamePiece newPieceTop = new GamePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), piece.getNotation().notationUp(0), gamePieces, this);
+				GamePiece newPieceTop = GamePiece.makePiece(piece.isColor(), piece.getHorizontalSplitStart(), piece.getTopRight(), gamePieces, pieceNeighbors, piecesSurrounding, pieceNotations, pieceNotations.get(piece).notationUp(0));
 				gamePieces.add(newPieceTop);
 				gamePieceAt.put(newPieceTop.getBottomLeft(), newPieceTop);
 				chain.add(newPieceTop);
@@ -407,26 +426,26 @@ public class GameBoard extends JPanel {
 				if(piece.canSplitVertical() && firstSelectionPoint.getX() == piece.getVerticalSplitStart().getX() &&
 				   firstSelectionPoint.getY() <= piece.getBottomLeft().getY() && secondSelectionPoint.getY() >= piece.getTopRight().getY()) {
 					piecesToSplit.add(piece);
-					if(firstSelectionPoint == piece.getVerticalSplitStart()) currentMoveNotation = piece.getNotation().toString() + "V";
+					if(firstSelectionPoint == piece.getVerticalSplitStart()) currentMoveNotation = pieceNotations.get(piece).toString() + "V";
 				}
 			}
 			if(piecesToSplit.size() > 1) currentMoveNotation += piecesToSplit.size();
 			for(GamePiece piece: piecesToSplit) {
 				gamePieces.remove(piece);
 				gamePieceAt.remove(piece.getBottomLeft());
-				for(GamePiece neighbor: piece.getNeighbors()) {
-					neighbor.getNeighbors().remove(piece);
+				for(GamePiece neighbor: pieceNeighbors.get(piece)) {
+					pieceNeighbors.get(neighbor).remove(piece);
 				}
-				for(GamePiece surrounding: piece.getSurrounding()) {
-					surrounding.getSurrounding().remove(piece);
+				for(GamePiece surrounding: piecesSurrounding.get(piece)) {
+					piecesSurrounding.get(surrounding).remove(piece);
 				}
 				Set<GamePiece> chain = findChain(piece);
 				chain.remove(piece);
-				GamePiece newPieceLeft = new GamePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), piece.getNotation(), gamePieces, this);
+				GamePiece newPieceLeft = GamePiece.makePiece(piece.isColor(), piece.getBottomLeft(), piece.getVerticalSplitEnd(), gamePieces, pieceNeighbors, piecesSurrounding, pieceNotations, pieceNotations.get(piece));
 				gamePieces.add(newPieceLeft);
 				gamePieceAt.put(newPieceLeft.getBottomLeft(), newPieceLeft);
 				chain.add(newPieceLeft);
-				GamePiece newPieceRight = new GamePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), piece.getNotation().notationRight(0), gamePieces, this);
+				GamePiece newPieceRight = GamePiece.makePiece(piece.isColor(), piece.getVerticalSplitStart(), piece.getTopRight(), gamePieces, pieceNeighbors, piecesSurrounding, pieceNotations, pieceNotations.get(piece).notationRight(0));
 				gamePieces.add(newPieceRight);
 				gamePieceAt.put(newPieceRight.getBottomLeft(), newPieceRight);
 				chain.add(newPieceRight);
@@ -442,8 +461,6 @@ public class GameBoard extends JPanel {
 		controlPanel.getEndTurnButton().setEnabled(true);
 		firstSelectionPoint = null;
 		secondSelectionPoint = null;
-
-		this.repaint();
 	}
 
 	private void updateBoardPoints() {
@@ -619,7 +636,7 @@ public class GameBoard extends JPanel {
 		if(oldChain.isEmpty()) chains.remove(oldChain);
 		else validateChain(oldChain);
 		Set<GamePiece> chain = null;
-		for(GamePiece neighbor: piece.getNeighbors()) {
+		for(GamePiece neighbor: pieceNeighbors.get(piece)) {
 			if(neighbor.isColor() == piece.isColor()) {
 				chain = findChain(neighbor);
 				chain.add(piece);
@@ -627,7 +644,7 @@ public class GameBoard extends JPanel {
 			}
 		}
 		if(chain != null) {
-			for(GamePiece neighbor: piece.getNeighbors()) {
+			for(GamePiece neighbor: pieceNeighbors.get(piece)) {
 				if(neighbor.isColor() == piece.isColor() && findChain(neighbor) != chain) {
 					Set<GamePiece> neighborChain = findChain(neighbor);
 					for(GamePiece chainPiece: neighborChain) {
@@ -657,7 +674,7 @@ public class GameBoard extends JPanel {
 			visited.add(piece);
 			while(!queue.isEmpty()) {
 				GamePiece p = queue.poll();
-				for(GamePiece neighbor: p.getNeighbors()) {
+				for(GamePiece neighbor: pieceNeighbors.get(p)) {
 					if(neighbor.isColor() == piece.isColor() && !visited.contains(neighbor)) {
 						visited.add(neighbor);
 						queue.add(neighbor);
@@ -681,7 +698,7 @@ public class GameBoard extends JPanel {
 			Set<Character> edges = new HashSet<>();
 			boolean color = false;
 			for(GamePiece piece: chain) {
-				edges.addAll(piece.getWallNeighbors());
+				edges.addAll(piece.getWallNeighbors(this));
 				color = piece.isColor();
 			}
 			if(edges.size() == 4) {
@@ -703,12 +720,12 @@ public class GameBoard extends JPanel {
 		for(Set<GamePiece> chain: chains) {
 			if(isCaptured.contains(chain)) {
 				for(GamePiece piece: chain) {
-					if(!piece.getWallNeighbors().isEmpty()) isCaptured.remove(chain);
+					if(!piece.getWallNeighbors(this).isEmpty()) isCaptured.remove(chain);
 				}
 				if(!isCaptured.contains(chain)) {
 					Queue<Set<GamePiece>> notCaptured = new LinkedList<>();
 					for(GamePiece piece: chain) {
-						for(GamePiece surrounding: piece.getSurrounding()) {
+						for(GamePiece surrounding: piecesSurrounding.get(piece)) {
 							if(surrounding.isColor() == piece.isColor()) {
 								Set<GamePiece> surroundingChain = findChain(surrounding);
 								if(isCaptured.contains(surroundingChain) && !notCaptured.contains(surroundingChain)) notCaptured.add(surroundingChain);
@@ -719,7 +736,7 @@ public class GameBoard extends JPanel {
 						Set<GamePiece> currentChain = notCaptured.poll();
 						isCaptured.remove(currentChain);
 						for(GamePiece piece: currentChain) {
-							for(GamePiece surrounding: piece.getSurrounding()) {
+							for(GamePiece surrounding: piecesSurrounding.get(piece)) {
 								if(surrounding.isColor() == piece.isColor()) {
 									Set<GamePiece> surroundingChain = findChain(surrounding);
 									if(isCaptured.contains(surroundingChain) && !notCaptured.contains(surroundingChain)) notCaptured.add(surroundingChain);
@@ -734,8 +751,13 @@ public class GameBoard extends JPanel {
 		for(Set<GamePiece> capturedChain: isCaptured) {
 			Set<GamePiece> copyChain = new HashSet<>(capturedChain);
 			for(GamePiece piece: copyChain) {
-				piece.setColor(!piece.isColor());
-				updateChain(piece);
+				GamePiece tmp = piece.oppositeColorPiece(gamePieces, pieceNeighbors, piecesSurrounding, pieceNotations, chains);
+				Set<GamePiece> chain = findChain(piece);
+				chain.remove(piece);
+				gamePieces.remove(piece);
+				gamePieces.add(tmp);
+				chain.add(tmp);
+				updateChain(tmp);
 			}
 			this.repaint();
 		}
@@ -816,7 +838,7 @@ public class GameBoard extends JPanel {
 				else if(currentAction.equals("swap")) {
 					if(firstSelectionPiece == null) {
 						for(GamePiece piece: swapStartPieces) {
-							if(piece.contains(p)) {
+							if(piece.contains(p, board)) {
 								firstSelectionPiece = piece;
 								repaint();
 								swapStartPieces.clear();
@@ -826,7 +848,7 @@ public class GameBoard extends JPanel {
 					}
 					else {
 						for(GamePiece piece: gamePieces) {
-							if(piece.contains(p) && validateSwap(firstSelectionPiece, piece)) {
+							if(piece.contains(p, board) && validateSwap(firstSelectionPiece, piece)) {
 								secondSelectionPiece = piece;
 								break;
 							}
@@ -887,23 +909,24 @@ public class GameBoard extends JPanel {
 		LinkedList<GamePiece> queue = new LinkedList<>();
 		for(GamePiece piece: gamePieces) {
 			if(piece.getBottomLeft().equals(BoardPoint.makePoint(0, 0))) queue.add(piece);
-			piece.setNotation(null);
+			pieceNotations.remove(piece);
 		}
-		queue.peek().setNotation(new Notation(0));
+		pieceNotations.clear();
+		pieceNotations.put(queue.peek(), new Notation(0));
 		GamePiece currentPiece;
 		while(!queue.isEmpty()) {
 			currentPiece = queue.pop();
-			int notationUpSize = currentPiece.getNotation().notationUp(0).notationSize();
-			int notationRightSize = currentPiece.getNotation().notationRight(0).notationSize();
-			for(GamePiece piece: currentPiece.getNeighbors()) {
+			int notationUpSize = pieceNotations.get(currentPiece).notationUp(0).notationSize();
+			int notationRightSize = pieceNotations.get(currentPiece).notationRight(0).notationSize();
+			for(GamePiece piece: pieceNeighbors.get(currentPiece)) {
 				if(piece.getBottomLeft().getX() == currentPiece.getBottomLeft().getX() && piece.getBottomLeft().getY() > currentPiece.getBottomLeft().getY()
-				  && (piece.getNotation() == null || notationUpSize <= piece.getNotation().notationSize())) { // up
-					piece.setNotation(currentPiece.getNotation().notationUp(getNumPointsBetween(currentPiece, piece)));
+				  && (pieceNotations.get(piece) == null || notationUpSize <= pieceNotations.get(piece).notationSize())) { // up
+					pieceNotations.put(piece, pieceNotations.get(currentPiece).notationUp(getNumPointsBetween(currentPiece, piece)));
 					queue.add(piece);
 				}
 				if(piece.getBottomLeft().getY() == currentPiece.getBottomLeft().getY() && piece.getBottomLeft().getX() > currentPiece.getBottomLeft().getX()
-				  && (piece.getNotation() == null || notationRightSize <= piece.getNotation().notationSize())) { // right
-					piece.setNotation(currentPiece.getNotation().notationRight(getNumPointsBetween(currentPiece, piece)));
+				  && (pieceNotations.get(piece) == null || notationRightSize <= pieceNotations.get(piece).notationSize())) { // right
+					pieceNotations.put(piece, pieceNotations.get(currentPiece).notationRight(getNumPointsBetween(currentPiece, piece)));
 					queue.add(piece);
 				}
 			}
@@ -998,7 +1021,7 @@ public class GameBoard extends JPanel {
 		for(int index = 0; index < swapNotation.length(); index++) {
 			switch(swapNotation.charAt(index)) {
 			case 'N':
-				for(GamePiece neighbor: firstSelectionPiece.getNeighbors()) {
+				for(GamePiece neighbor: pieceNeighbors.get(firstSelectionPiece)) {
 					if(neighbor.getBottomLeft().getX() == firstSelectionPiece.getBottomLeft().getX() && neighbor.getBottomLeft().getY() == firstSelectionPiece.getTopRight().getY()) {
 						secondSelectionPiece = neighbor;
 						swap();
@@ -1007,7 +1030,7 @@ public class GameBoard extends JPanel {
 				}
 				break;
 			case 'S':
-				for(GamePiece neighbor: firstSelectionPiece.getNeighbors()) {
+				for(GamePiece neighbor: pieceNeighbors.get(firstSelectionPiece)) {
 					if(neighbor.getBottomLeft().getX() == firstSelectionPiece.getBottomLeft().getX() && neighbor.getTopRight().getY() == firstSelectionPiece.getBottomLeft().getY()) {
 						secondSelectionPiece = neighbor;
 						swap();
@@ -1016,7 +1039,7 @@ public class GameBoard extends JPanel {
 				}
 				break;
 			case 'E':
-				for(GamePiece neighbor: firstSelectionPiece.getNeighbors()) {
+				for(GamePiece neighbor: pieceNeighbors.get(firstSelectionPiece)) {
 					if(neighbor.getBottomLeft().getY() == firstSelectionPiece.getBottomLeft().getY() && neighbor.getBottomLeft().getX() == firstSelectionPiece.getTopRight().getX()) {
 						secondSelectionPiece = neighbor;
 						swap();
@@ -1025,7 +1048,7 @@ public class GameBoard extends JPanel {
 				}
 				break;
 			case 'W':
-				for(GamePiece neighbor: firstSelectionPiece.getNeighbors()) {
+				for(GamePiece neighbor: pieceNeighbors.get(firstSelectionPiece)) {
 					if(neighbor.getBottomLeft().getY() == firstSelectionPiece.getBottomLeft().getY() && neighbor.getTopRight().getX() == firstSelectionPiece.getBottomLeft().getX()) {
 						secondSelectionPiece = neighbor;
 						swap();
@@ -1176,7 +1199,7 @@ public class GameBoard extends JPanel {
 
 	private GamePiece getPieceWithNotation(String pieceNotation) {
 		for(GamePiece piece: gamePieces) // if pieceNotation is the same as the notation stored in one of the pieces, return that piece
-			if(piece.getNotation().toString().equals(pieceNotation)) {
+			if(pieceNotations.get(piece).toString().equals(pieceNotation)) {
 				return piece;
 			}
 		// if pieceNotation is not in the standard notation that my game uses, we need to manually do the movements to get the piece

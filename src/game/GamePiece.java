@@ -4,32 +4,31 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class GamePiece {
-	private boolean color; // For now, 0=white, 1=black, but a string or enum might be easier to read
-	private BoardPoint bottomLeft;
-	private BoardPoint topRight;
-	private Notation notation;
-	private BoardPoint horizontalSplitStart, verticalSplitStart;
-	private BoardPoint horizontalSplitEnd, verticalSplitEnd;
-	private String shape;
-	private Set<GamePiece> neighbors;
-	private Set<Character> wallNeighbors;
-	private Set<GamePiece> surrounding;
+	private final boolean color; // For now, 0=white, 1=black, but a string or enum might be easier to read
+	private final BoardPoint bottomLeft;
+	private final BoardPoint topRight;
+	private final BoardPoint horizontalSplitStart;
+	private final BoardPoint verticalSplitStart;
+	private final BoardPoint horizontalSplitEnd;
+	private final BoardPoint verticalSplitEnd;
+	private final String shape;
 	private static boolean showNotation = false;
-	private GameBoard board;
+	private static final Map<GamePiece, GamePiece> pieces = new HashMap<>();
 	
 	public static final int X_OFFSET = 20;
 	public static final int Y_OFFSET = 20;
 	
-	public GamePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, Notation notation, Set<GamePiece> gamePieces, GameBoard board) {
+	private GamePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight) {
 		this.color = color;
 		this.bottomLeft = bottomLeft;
 		this.topRight = topRight;
-		this.notation = notation;
-		this.board = board;
 		double width = topRight.getX()-bottomLeft.getX();
 		double height = topRight.getY()-bottomLeft.getY();
 		if(width == height) {
@@ -43,23 +42,70 @@ public class GamePiece {
 			shape = "tall";
 			horizontalSplitStart = BoardPoint.makePoint(bottomLeft.getX(), (bottomLeft.getY()+topRight.getY())/2);
 			horizontalSplitEnd = BoardPoint.makePoint(topRight.getX(), (bottomLeft.getY()+topRight.getY())/2);
+			verticalSplitEnd = null;
+			verticalSplitStart = null;
 		}
 		else {
 			shape = "wide";
 			verticalSplitEnd = BoardPoint.makePoint((bottomLeft.getX()+topRight.getX())/2, topRight.getY());
 			verticalSplitStart = BoardPoint.makePoint((bottomLeft.getX()+topRight.getX())/2, bottomLeft.getY());
+			horizontalSplitStart = null;
+			horizontalSplitEnd = null;
 		}
-		neighbors = new HashSet<GamePiece>();
+	}
+	
+	public static GamePiece makePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, Set<GamePiece> gamePieces, Map<GamePiece, Set<GamePiece> > pieceNeighbors, Map<GamePiece, Set<GamePiece> > piecesSurrounding, Map<GamePiece, Notation> pieceNotations, Notation notation) {
+		GamePiece piece = pieces.get(new GamePiece(color, bottomLeft, topRight));
+		if(piece == null) {
+			piece = new GamePiece(color, bottomLeft, topRight);
+			pieces.put(piece, piece);
+		}
+		pieceNeighbors.put(piece, new HashSet<>());
+		piecesSurrounding.put(piece, new HashSet<>());
+		piece.updateNeighbors(gamePieces, pieceNeighbors, piecesSurrounding);
+		pieceNotations.put(piece, notation);
+		return piece;
+	}
+	
+	public GamePiece oppositeColorPiece(Set<GamePiece> gamePieces, Map<GamePiece, Set<GamePiece>> pieceNeighbors, Map<GamePiece, Set<GamePiece>> piecesSurrounding, Map<GamePiece, Notation> pieceNotations, Set<Set<GamePiece>> chains) {
+		GamePiece newPiece = pieces.get(new GamePiece(!color, bottomLeft, topRight));
+		if(newPiece == null) {
+			newPiece = new GamePiece(!color, bottomLeft, topRight);
+			pieces.put(newPiece, newPiece);
+		}
+		Set<GamePiece> neighbors = pieceNeighbors.get(this);
+		if(neighbors == null) {
+			neighbors = new HashSet<>();
+		}
+		pieceNeighbors.put(newPiece, neighbors);
+		pieceNeighbors.remove(this);
+		for(GamePiece g: pieceNeighbors.get(newPiece)) {
+			pieceNeighbors.get(g).remove(this);
+			pieceNeighbors.get(g).add(newPiece);
+		}
+		piecesSurrounding.put(newPiece, piecesSurrounding.get(this));
+		piecesSurrounding.remove(this);
+		for(GamePiece g: piecesSurrounding.get(newPiece)) {
+			piecesSurrounding.get(g).remove(this);
+			piecesSurrounding.get(g).add(newPiece);
+		}
+		pieceNotations.put(newPiece, pieceNotations.get(this));
+		pieceNotations.remove(this);
+		return newPiece;
+	}
+	
+	private void updateNeighbors(Set<GamePiece> gamePieces, Map<GamePiece, Set<GamePiece> > pieceNeighbors, Map<GamePiece, Set<GamePiece> > piecesSurrounding) {
+		Set<GamePiece> neighbors = pieceNeighbors.get(this);
+		Set<GamePiece> surrounding = piecesSurrounding.get(this);
 		for(GamePiece piece: gamePieces) {
 			if(isNeighbor(piece)) {
 				neighbors.add(piece);
-				piece.getNeighbors().add(this);
+				pieceNeighbors.get(piece).add(this);
 			}
 		}
-		surrounding = new HashSet<GamePiece>();
 		for(GamePiece piece: neighbors) {
 			surrounding.add(piece);
-			piece.getSurrounding().add(this);
+			piecesSurrounding.get(piece).add(this);
 		}
 		for(GamePiece piece: gamePieces) {
 			if(piece.getBottomLeft().getX() == topRight.getX() && piece.getBottomLeft().getY() == topRight.getY() ||
@@ -67,22 +113,9 @@ public class GamePiece {
 			   piece.getTopRight().getX() == bottomLeft.getX() && piece.getBottomLeft().getY() == topRight.getY() ||
 			   piece.getTopRight().getX() == bottomLeft.getX() && piece.getTopRight().getY() == bottomLeft.getY() ) {
 				surrounding.add(piece);
-				piece.getSurrounding().add(this);
+				piecesSurrounding.get(piece).add(this);
 			}
 		}
-		wallNeighbors = new HashSet<>();
-		if(bottomLeft.getX() == 0) wallNeighbors.add('L'); // left
-		if(bottomLeft.getY() == 0) wallNeighbors.add('B'); // bottom
-		if(topRight.getX() == board.getNumColumns()) wallNeighbors.add('R'); // right
-		if(topRight.getY() == board.getNumRows()) wallNeighbors.add('T'); // top
-	}
-
-	public Set<GamePiece> getSurrounding() {
-		return surrounding;
-	}
-
-	public Set<GamePiece> getNeighbors() {
-		return neighbors;
 	}
 
 	private boolean isNeighbor(GamePiece piece) { // check that this and piece share some edge
@@ -112,32 +145,16 @@ public class GamePiece {
 		return horizontalSplitStart;
 	}
 
-	public void setHorizontalSplitStart(BoardPoint horizontalSplitStart) {
-		this.horizontalSplitStart = horizontalSplitStart;
-	}
-
 	public BoardPoint getVerticalSplitStart() {
 		return verticalSplitStart;
-	}
-
-	public void setVerticalSplitStart(BoardPoint verticalSplitStart) {
-		this.verticalSplitStart = verticalSplitStart;
 	}
 
 	public BoardPoint getHorizontalSplitEnd() {
 		return horizontalSplitEnd;
 	}
 
-	public void setHorizontalSplitEnd(BoardPoint horizontalSplitEnd) {
-		this.horizontalSplitEnd = horizontalSplitEnd;
-	}
-
 	public BoardPoint getVerticalSplitEnd() {
 		return verticalSplitEnd;
-	}
-
-	public void setVerticalSplitEnd(BoardPoint verticalSplitEnd) {
-		this.verticalSplitEnd = verticalSplitEnd;
 	}
 
 	public boolean isColor() {
@@ -146,12 +163,7 @@ public class GamePiece {
 
 	@Override
 	public String toString() {
-		return "GamePiece [color=" + color + ", bottomLeft=" + bottomLeft + ", topRight=" + topRight + ", location="
-				+ notation + "]";
-	}
-
-	public void setColor(boolean color) {
-		this.color = color;
+		return "GamePiece [color=" + color + ", bottomLeft=" + bottomLeft + ", topRight=" + topRight + "]";
 	}
 
 	public BoardPoint getBottomLeft() {
@@ -162,11 +174,7 @@ public class GamePiece {
 		return topRight;
 	}
 
-	public Notation getNotation() {
-		return notation;
-	}
-
-	public void draw(Graphics g) {
+	public void draw(Graphics g, GameBoard board, Notation notation) {
 		Graphics2D g2 = (Graphics2D) g;
 		int x1 = (int)(X_OFFSET + board.getxConversion()*bottomLeft.getX());
 		int x2 = (int)(X_OFFSET + board.getxConversion()*topRight.getX());
@@ -202,7 +210,7 @@ public class GamePiece {
 		GamePiece.showNotation = showNotation;
 	}
 
-	public boolean contains(Point p) {
+	public boolean contains(Point p, GameBoard board) {
 		return contains(BoardPoint.makeTempPoint(p, board));
 	}
 
@@ -216,12 +224,26 @@ public class GamePiece {
 		       p.getTopRight().getY() <= topRight.getY() && p.getBottomLeft().getY() >= bottomLeft.getY() ;
 	}
 
-	public Set<Character> getWallNeighbors() {
-		return wallNeighbors;
+	public Set<Character> getWallNeighbors(GameBoard board) {
+		Set<Character> set = new HashSet<>();
+		if(bottomLeft.getX() == 0) set.add('L'); // left
+		if(bottomLeft.getY() == 0) set.add('B'); // bottom
+		if(topRight.getX() == board.getNumColumns()) set.add('R'); // right
+		if(topRight.getY() == board.getNumRows()) set.add('T'); // top
+		return set;
 	}
-
-	public void setNotation(Notation notation) {
-		this.notation = notation;
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == null) return false;
+		if(!o.getClass().equals(GamePiece.class)) return false;
+		GamePiece p = (GamePiece) o;
+		return this.bottomLeft.equals(p.getBottomLeft()) && this.topRight.equals(p.getTopRight()) && this.color == p.isColor();
+	}
+	
+	@Override
+	public int hashCode() { // Not a great hashcode but it's better than the auto-generated hashcode because this one will hash the same pieces to the same value
+		return bottomLeft.hashCode() * 29 + topRight.hashCode() * 71 + (color ? 1 : 0);
 	}
 	
 }
