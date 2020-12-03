@@ -143,7 +143,7 @@ public class ControlPanel extends JPanel {
 	}
 
 	public void reset() {
-		setCurrentTurn("Black");
+		setCurrentTurn("Black's");
 		endTurnButton.setEnabled(false);
 		enableUndo(false);
 		enableRedo(false);
