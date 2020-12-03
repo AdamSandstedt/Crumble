@@ -54,7 +54,7 @@ public class GamePiece {
 		}
 	}
 	
-	public static GamePiece makePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, Set<GamePiece> gamePieces, Map<GamePiece, Set<GamePiece> > pieceNeighbors, Map<GamePiece, Set<GamePiece> > piecesSurrounding, Map<GamePiece, Notation> pieceNotations, Notation notation) {
+	public static GamePiece makePiece(boolean color, BoardPoint bottomLeft, BoardPoint topRight, Collection<GamePiece> gamePieces, Map<GamePiece, Set<GamePiece> > pieceNeighbors, Map<GamePiece, Set<GamePiece> > piecesSurrounding, Map<GamePiece, Notation> pieceNotations, Notation notation) {
 		GamePiece piece = pieces.get(new GamePiece(color, bottomLeft, topRight));
 		if(piece == null) {
 			piece = new GamePiece(color, bottomLeft, topRight);
@@ -67,7 +67,7 @@ public class GamePiece {
 		return piece;
 	}
 	
-	public GamePiece oppositeColorPiece(Set<GamePiece> gamePieces, Map<GamePiece, Set<GamePiece>> pieceNeighbors, Map<GamePiece, Set<GamePiece>> piecesSurrounding, Map<GamePiece, Notation> pieceNotations, Set<Set<GamePiece>> chains) {
+	public GamePiece oppositeColorPiece(Map<GamePiece, Set<GamePiece>> pieceNeighbors, Map<GamePiece, Set<GamePiece>> piecesSurrounding, Map<GamePiece, Notation> pieceNotations) {
 		GamePiece newPiece = pieces.get(new GamePiece(!color, bottomLeft, topRight));
 		if(newPiece == null) {
 			newPiece = new GamePiece(!color, bottomLeft, topRight);
@@ -94,7 +94,7 @@ public class GamePiece {
 		return newPiece;
 	}
 	
-	private void updateNeighbors(Set<GamePiece> gamePieces, Map<GamePiece, Set<GamePiece> > pieceNeighbors, Map<GamePiece, Set<GamePiece> > piecesSurrounding) {
+	private void updateNeighbors(Collection<GamePiece> gamePieces, Map<GamePiece, Set<GamePiece> > pieceNeighbors, Map<GamePiece, Set<GamePiece> > piecesSurrounding) {
 		Set<GamePiece> neighbors = pieceNeighbors.get(this);
 		Set<GamePiece> surrounding = piecesSurrounding.get(this);
 		for(GamePiece piece: gamePieces) {
