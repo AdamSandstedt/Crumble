@@ -3,7 +3,7 @@ package game;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -149,7 +149,7 @@ public class ControlPanel extends JPanel {
 		enableRedo(false);
 	}
 
-	public void setNotations(ArrayList<String> moveNotations) {
+	public void setNotations(List<String> moveNotations) {
 		notationTextArea.setText("");
 		for(String notation: moveNotations) {
 			notationTextArea.append(notation + System.lineSeparator());

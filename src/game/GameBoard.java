@@ -231,11 +231,13 @@ public class GameBoard extends JPanel {
 			int x1 = firstSelectionPoint.toPoint(this).x;
 			int y1 = firstSelectionPoint.toPoint(this).y;
 			BoardPoint p = getNearestPoint(BoardPoint.makeTempPoint(mousePosition, this));
-			int x2 = p.toPoint(this).x;
-			int y2 = p.toPoint(this).y;
-			g2.setColor(Color.red);
-			g2.setStroke(new BasicStroke(4));
-			g2.drawLine(x1, y1, x2, y2);
+			if(p != null) {
+				int x2 = p.toPoint(this).x;
+				int y2 = p.toPoint(this).y;
+				g2.setColor(Color.red);
+				g2.setStroke(new BasicStroke(4));
+				g2.drawLine(x1, y1, x2, y2);
+			}
 		}
 		else if(showJoinRect) {
 			BoardPoint p = getNearestPoint(BoardPoint.makeTempPoint(mousePosition, this));
@@ -747,6 +749,8 @@ public class GameBoard extends JPanel {
 				gamePieces.put(tmp.getBottomLeft(), tmp);
 				chain.add(tmp);
 				updateChain(tmp);
+				if(firstSelectionPiece == piece)
+					firstSelectionPiece = tmp;
 			}
 			this.repaint();
 		}
@@ -763,8 +767,8 @@ public class GameBoard extends JPanel {
 	private void setCurrentAction(String action) {
 		currentAction = action;
 		if(currentAction.equals("end turn") && controlPanel.getEndTurnButton().isEnabled()) {
-			crumbleGame.addMove(currentMoveNotation);
 			currentTurn = !currentTurn;
+			crumbleGame.addMove(currentMoveNotation);
 			currentAction = "split";
 			firstSelectionPiece = null;
 			showStartPoint = true;
@@ -1218,6 +1222,30 @@ public class GameBoard extends JPanel {
 		}
 
 		return gamePieces.get(currentPoint);
+	}
+	
+	public BoardState makeBoardState() {
+		return new BoardState(new HashMap<>(gamePieces), currentTurn, new HashSet<>(chains), new HashMap<>(boardPoints), new HashMap<>(pieceNotations), new HashMap<>(pieceNeighbors), new HashMap<>(piecesSurrounding));
+	}
+	
+	public void setBoardState(BoardState state) {
+		gamePieces = new HashMap<>(state.getGamePieces());
+		currentTurn = state.isCurrentTurn();
+		if(currentTurn) controlPanel.setCurrentTurn("Black's");
+		else controlPanel.setCurrentTurn("White's");
+		currentAction = "split";
+		firstSelectionPoint = null;
+		secondSelectionPoint = null;
+		firstSelectionPiece = null;
+		secondSelectionPiece = null;
+		showSplitLine = false;
+		showJoinRect = false;
+		showStartPoint = true;
+		boardPoints = new HashMap<>(state.getBoardPoints());
+		pieceNotations = new HashMap<>(state.getPieceNotations());
+		pieceNeighbors = new HashMap<>(state.getPieceNeighbors());
+		piecesSurrounding = new HashMap<>(state.getPiecesSurrounding());
+		chains = new HashSet<>(state.getChains());
 	}
 
 }

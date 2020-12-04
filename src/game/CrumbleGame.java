@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -35,9 +36,11 @@ public class CrumbleGame extends JFrame {
 	private int numRows = 0;
 	private int numColumns = 0;
 	private int historyIndex;
+	private List<BoardState> history;
 
 	public CrumbleGame() {
 		moveNotations = new ArrayList<>();
+		history = new ArrayList<>();
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
 		fileChooser = new JFileChooser(){
@@ -68,6 +71,7 @@ public class CrumbleGame extends JFrame {
 
 		board  = new GameBoard(this);
 		add(board, BorderLayout.CENTER);
+		history.add(board.makeBoardState());
 
 		controlPanel = new ControlPanel(this);
 		add(controlPanel, BorderLayout.EAST);
@@ -195,9 +199,15 @@ public class CrumbleGame extends JFrame {
 	}
 
 	public void addMove(String currentMoveNotation) {
-		while(historyIndex != moveNotations.size()) moveNotations.remove(moveNotations.size()-1);
+		while(historyIndex != moveNotations.size()) {
+			moveNotations.remove(moveNotations.size()-1);
+		}
+		while(historyIndex < history.size() - 1) {
+			history.remove(history.size()-1);
+		}
 		historyIndex += 1;
 		moveNotations.add(currentMoveNotation);
+		history.add(board.makeBoardState());
 		controlPanel.enableUndo(true);
 		controlPanel.enableRedo(false);
 
@@ -252,10 +262,13 @@ public class CrumbleGame extends JFrame {
 	private void loadGameFromNotations(ArrayList<String> notations) {
 		setGameBoard(new GameBoard(this));
 		controlPanel.reset();
+		history.clear();
+		history.add(board.makeBoardState());
 
 		int originalSize = moveNotations.size();
 		for(int i = 0; i < notations.size() && i < originalSize; i++) {
 			board.doMove(notations.get(i));
+			history.add(board.makeBoardState());
 		}
 		while(moveNotations.size() > originalSize) {
 			moveNotations.remove(moveNotations.size() - 1);
@@ -266,7 +279,7 @@ public class CrumbleGame extends JFrame {
 		controlPanel.enableRedo(historyIndex < moveNotations.size());
 		controlPanel.setNotations(notations);
 	}
-
+	
 	public int getNumRows() {
 		return numRows;
 	}
@@ -337,15 +350,22 @@ public class CrumbleGame extends JFrame {
 		}
 
 	}
+	
+	private void loadState(BoardState state, List<String> notations) {
+		board.setBoardState(state);
+		
+		controlPanel.enableUndo(historyIndex > 0);
+		controlPanel.enableRedo(historyIndex < moveNotations.size());
+		controlPanel.setNotations(notations);
+	}
 
 	public void loadState(int index) {
 		if(index > moveNotations.size()) historyIndex = moveNotations.size();
 		else if(index < 0) historyIndex = 0;
 		else historyIndex = index;
 		
-		ArrayList<String> tempNotations = new ArrayList<>(moveNotations.subList(0, historyIndex));
-		loadGameFromNotations(tempNotations);
-				
+		loadState(history.get(index), moveNotations.subList(0, index));
+		
 		repaint();
 		board.repaint();
 		controlPanel.repaint();
@@ -353,9 +373,11 @@ public class CrumbleGame extends JFrame {
 
 	public void loadState(String action) {
 		if(action.equals("undo")) {
+			if(historyIndex == 0) return;
 			loadState(historyIndex - 1);
 		}
 		else if(action.equals("redo")) {
+			if(historyIndex == history.size() - 1) return;
 			loadState(historyIndex + 1);
 		}
 	}
