@@ -1,6 +1,9 @@
 package game;
 
 import java.awt.BorderLayout;
+import java.awt.Dialog;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Menu;
 import java.awt.MenuBar;
@@ -19,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -96,15 +101,15 @@ public class CrumbleGame extends JFrame {
 
 	public class CrumbleMenuBar extends MenuBar {
 		MenuBarListener menuBarListener;
-		Menu file;
+		Menu game;
 		Menu edit;
 		Menu view;
 		Menu help;
 
 		public CrumbleMenuBar() {
 			menuBarListener = new MenuBarListener();
-			file = createFileMenu();
-			add(file);
+			game = createGameMenu();
+			add(game);
 
 			edit = createEditMenu();
 			add(edit);
@@ -116,10 +121,15 @@ public class CrumbleGame extends JFrame {
 			add(help);
 		}
 
-		private Menu createFileMenu() {
-			Menu menu = new Menu("File");
+		private Menu createGameMenu() {
+			Menu menu = new Menu("Game");
+			
+			MenuItem item = new MenuItem("New");
+			item.setActionCommand("new");
+			item.addActionListener(menuBarListener);
+			menu.add(item);
 
-			MenuItem item = new MenuItem("Save");
+			item = new MenuItem("Save");
 			item.setActionCommand("save");
 			item.addActionListener(menuBarListener);
 			menu.add(item);
@@ -194,8 +204,85 @@ public class CrumbleGame extends JFrame {
 			else if(action.equals("keyboard shortcuts")) {
 				showKeyboardShortcuts();
 			}
+			else if(action.equals("new")) {
+				newGameDialog();
+			}
 		}
 
+	}
+	
+	public void newGameDialog() {
+		NewGameDialog dialog = new NewGameDialog(this, "New Game", Dialog.ModalityType.DOCUMENT_MODAL);
+		dialog.setVisible(true);
+	}
+	
+	private class NewGameDialog extends JDialog {
+		private JSpinner crumbleLevel, columnSpinner, rowSpinner;
+		private JComboBox gameType;
+
+		public NewGameDialog(CrumbleGame crumbleGame, String title, ModalityType modality) {
+			super(crumbleGame, title, modality);
+			this.setLayout(new GridLayout(3,1));
+			
+			JPanel panel = new JPanel();
+			panel.setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.fill = GridBagConstraints.NONE;
+			c.weightx = 0.25;
+			c.gridx = 0;
+			c.gridy = 0;
+			crumbleLevel = new JSpinner(new SpinnerNumberModel(0, 0, 99, 1));
+			panel.add(crumbleLevel, c);
+			
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.weightx = 0.75;
+			c.gridx = 1;
+			c.gridy = 0;
+			JTextField textField = new JTextField("0 = standard infinite level crumble");
+			textField.setEditable(false);
+			textField.setBackground(getBackground());
+			panel.add(textField, c);
+			panel.setBorder(new TitledBorder(new EtchedBorder(), "Crumble Level"));
+			add(panel);
+			
+			gameType = new JComboBox();
+			gameType.addItem("Human vs Human");
+			gameType.addItem("Human vs Computer");
+			gameType.addItem("Computer vs Computer");
+			gameType.setBorder(new TitledBorder(new EtchedBorder(), "Game Type"));
+			add(gameType);
+			
+			JPanel resizePanel = new JPanel();
+			resizePanel.setLayout(new GridBagLayout());
+			columnSpinner = new JSpinner(new SpinnerNumberModel(6, 2, 16, 1));
+			columnSpinner.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					crumbleGame.setNumColumns((int)((JSpinner)e.getSource()).getValue());
+					crumbleGame.setNumColumns((int)((JSpinner)e.getSource()).getValue());
+					rowSpinner.setValue((int)((JSpinner)e.getSource()).getValue());
+				}
+			});
+			resizePanel.add(columnSpinner);
+
+			rowSpinner = new JSpinner(new SpinnerNumberModel(6, 2, 16, 1));
+			rowSpinner.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					crumbleGame.setNumRows((int)((JSpinner)e.getSource()).getValue());
+				}
+			});
+			resizePanel.add(rowSpinner);
+			resizePanel.setBorder(new TitledBorder(new EtchedBorder(), "Gameboard dimensions"));
+			textField = new JTextField("Standard crumble is 6x6");
+			textField.setEditable(false);
+			textField.setBackground(getBackground());
+			resizePanel.add(textField);
+			add(resizePanel);
+			
+			pack();
+		}
+		
 	}
 
 	public void addMove(String currentMoveNotation) {
