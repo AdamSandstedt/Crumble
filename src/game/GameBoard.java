@@ -55,6 +55,7 @@ public class GameBoard extends JPanel {
 	private Map<GamePiece, Notation> pieceNotations;
 	private Map<GamePiece, Set<GamePiece> > pieceNeighbors;
 	private Map<GamePiece, Set<GamePiece> > piecesSurrounding;
+	private boolean gameOver;
 
 	public GameBoard() {
 		gamePieces = new HashMap<>();
@@ -66,6 +67,7 @@ public class GameBoard extends JPanel {
 		pieceNotations = new HashMap<>();
 		pieceNeighbors = new HashMap<>();
 		piecesSurrounding = new HashMap<>();
+		gameOver = false;
 
 		setPreferredSize(new Dimension(boardWidth+GamePiece.X_OFFSET*2, boardHeight+GamePiece.Y_OFFSET*2));
 		addMouseListener(new BoardMouseListener(this));
@@ -693,6 +695,7 @@ public class GameBoard extends JPanel {
 				color = piece.isColor();
 			}
 			if(edges.size() == 4) {
+				gameOver = true;
 				String message;
 				if(color) message = "Black wins!";
 				else message = "White wins!";
@@ -942,7 +945,7 @@ public class GameBoard extends JPanel {
 		return yConversion;
 	}
 
-	public void doMove(String moveNotation) {		
+	public void doMove(String moveNotation) {
 		String swapNotation = null;
 		if(moveNotation.matches("[0-9]+(,[0-9]+)*V.*")) { // vertical split
 			splitDirection = false;
@@ -1052,7 +1055,7 @@ public class GameBoard extends JPanel {
 			}
 		}
 
-		if(!swapStartPieces.isEmpty()) { // it will be empty if a player won
+		if(!gameOver) {
 			currentTurn = !currentTurn;
 			currentAction = "split";
 			firstSelectionPiece = null;
@@ -1153,6 +1156,14 @@ public class GameBoard extends JPanel {
 		return null;
 	}
 
+	public Map<GamePiece, Notation> getPieceNotations() {
+		return pieceNotations;
+	}
+
+	public Map<BoardPoint, GamePiece> getGamePieces() {
+		return gamePieces;
+	}
+
 	private BoardPoint getEndSplitPoint(int numberOfSplits) {
 		ArrayList<BoardPoint> splitPoints = new ArrayList<>();
 		if(splitDirection) { // horizontal
@@ -1225,7 +1236,7 @@ public class GameBoard extends JPanel {
 	}
 	
 	public BoardState makeBoardState() {
-		return new BoardState(new HashMap<>(gamePieces), currentTurn, new HashSet<>(chains), new HashMap<>(boardPoints), new HashMap<>(pieceNotations), new HashMap<>(pieceNeighbors), new HashMap<>(piecesSurrounding));
+		return new BoardState(new HashMap<>(gamePieces), currentTurn, new HashSet<>(chains), new HashMap<>(boardPoints), new HashMap<>(pieceNotations), new HashMap<>(pieceNeighbors), new HashMap<>(piecesSurrounding), gameOver);
 	}
 	
 	public void setBoardState(BoardState state) {
@@ -1246,6 +1257,11 @@ public class GameBoard extends JPanel {
 		pieceNeighbors = new HashMap<>(state.getPieceNeighbors());
 		piecesSurrounding = new HashMap<>(state.getPiecesSurrounding());
 		chains = new HashSet<>(state.getChains());
+		gameOver = state.isGameOver();
+	}
+
+	public boolean isGameOver() {
+		return gameOver;
 	}
 
 }

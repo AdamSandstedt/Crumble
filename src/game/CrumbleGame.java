@@ -28,6 +28,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import game_engine.GameEngine;
+
 /**
  * @author Adam Sandstedt
  *
@@ -42,8 +44,9 @@ public class CrumbleGame extends JFrame {
 	private int numColumns = 0;
 	private int historyIndex;
 	private List<BoardState> history;
+	private GameEngine engine;
 
-	public CrumbleGame() {
+	public CrumbleGame(boolean visible) {
 		moveNotations = new ArrayList<>();
 		history = new ArrayList<>();
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -84,11 +87,12 @@ public class CrumbleGame extends JFrame {
 		historyIndex = 0;
     
 		this.pack();
-		setVisible(true);
+		setVisible(visible);
 	}
 
 	public static void main(String[] args) {
-		CrumbleGame game = new CrumbleGame();
+		CrumbleGame game = new CrumbleGame(true);
+		 game.engine = new GameEngine();
 	}
 
 	public GameBoard getBoard() {
@@ -297,8 +301,24 @@ public class CrumbleGame extends JFrame {
 		history.add(board.makeBoardState());
 		controlPanel.enableUndo(true);
 		controlPanel.enableRedo(false);
+		
+		if(!board.isCurrentTurn()) {
+			engine.setPlayerType(false);
+			engine.getBoard().setBoardState(history.get(historyIndex));
+			engine.getGame().setHistory(history);
+			engine.getGame().setHistoryIndex(historyIndex);
+			System.out.println(engine.GetNextMove());
+		}
 
 		controlPanel.setNotations(moveNotations);
+	}
+
+	public int getHistoryIndex() {
+		return historyIndex;
+	}
+
+	public void setHistoryIndex(int historyIndex) {
+		this.historyIndex = historyIndex;
 	}
 
 	public void saveFile() {
@@ -319,6 +339,14 @@ public class CrumbleGame extends JFrame {
 	            e.printStackTrace();
 	        }
 		}
+	}
+
+	public List<BoardState> getHistory() {
+		return history;
+	}
+
+	public void setHistory(List<BoardState> history) {
+		this.history = history;
 	}
 
 	public void loadFile() {
@@ -365,6 +393,13 @@ public class CrumbleGame extends JFrame {
 		controlPanel.enableUndo(historyIndex > 0);
 		controlPanel.enableRedo(historyIndex < moveNotations.size());
 		controlPanel.setNotations(notations);
+	}
+	
+	public void doMove(String notation) {
+		board.doMove(notation);
+		moveNotations.add(notation);
+		history.add(board.makeBoardState());
+		historyIndex++;
 	}
 	
 	public int getNumRows() {

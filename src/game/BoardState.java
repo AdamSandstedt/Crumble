@@ -13,6 +13,7 @@ public class BoardState {
 	private final Map<GamePiece, Notation> pieceNotations;
 	private final Map<GamePiece, Set<GamePiece> > pieceNeighbors;
 	private final Map<GamePiece, Set<GamePiece> > piecesSurrounding;
+	private final boolean gameOver;
 	
 	public Map<BoardPoint, GamePiece> getGamePieces() {
 		return gamePieces;
@@ -54,7 +55,7 @@ public class BoardState {
 		return newPiecesSurrounding;
 	}
 
-	public BoardState(Map<BoardPoint, GamePiece> gamePieces, boolean currentTurn, Set<Set<GamePiece>> chains, Map<BoardPoint, BoardPoint> boardPoints, Map<GamePiece, Notation> pieceNotations, Map<GamePiece, Set<GamePiece>> pieceNeighbors, Map<GamePiece, Set<GamePiece>> piecesSurrounding) {
+	public BoardState(Map<BoardPoint, GamePiece> gamePieces, boolean currentTurn, Set<Set<GamePiece>> chains, Map<BoardPoint, BoardPoint> boardPoints, Map<GamePiece, Notation> pieceNotations, Map<GamePiece, Set<GamePiece>> pieceNeighbors, Map<GamePiece, Set<GamePiece>> piecesSurrounding, boolean gameOver) {
 		Set<Set<GamePiece> > newChains = new HashSet<>();
 		for(Set<GamePiece> s: chains) {
 			newChains.add(new HashSet<>(s));
@@ -74,5 +75,10 @@ public class BoardState {
 		this.pieceNotations = pieceNotations;
 		this.pieceNeighbors = newPieceNeighbors;
 		this.piecesSurrounding = newPiecesSurrounding;
+		this.gameOver = gameOver;
+	}
+
+	public boolean isGameOver() {
+		return gameOver;
 	}
 }
